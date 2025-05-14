@@ -93,6 +93,7 @@ export default function App(): JSX.Element {
   const [currentScore, setCurrentScore] = useState<number | null>(null);
   const [scores, setScores] = useState<PlayerScore[]>([]);
   const [clickOrder, setClickOrder] = useState<number>(0);
+  const [gameState, setGameState] = useState<GameState | null>(null);
 
   // 빛 이동 게임 상태
   const [isLightActive, setIsLightActive] = useState<boolean>(false);
@@ -289,6 +290,7 @@ export default function App(): JSX.Element {
 
   // 게임 상태 동기화 함수
   const synchronizeGameState = (gameState: GameState, adminId: string) => {
+    setGameState(gameState);
     // 방장 여부 업데이트
     setIsAdmin(playerId === adminId);
 
@@ -395,11 +397,6 @@ export default function App(): JSX.Element {
   const winner = players.find(
     (player) => player.id === gameState?.selectedPlayerId
   );
-
-  // 게임 상태 변경 함수
-  const updateGameState = (updates: Partial<GameState>) => {
-    // ... (함수 내용) ...
-  };
 
   // 게임 상태 변경 함수
   const updateGameState = (updates: Partial<GameState>) => {
@@ -673,6 +670,7 @@ export default function App(): JSX.Element {
       if (cycleCount > 5) {
         speed = Math.max(speed - 50, 200);
         clearInterval(lightTimerRef.current!);
+        lightTimerRef.current = null; // 이 줄을 추가하세요
 
         lightTimerRef.current = window.setInterval(() => {
           // 다음 플레이어로 이동
