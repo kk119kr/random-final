@@ -1083,21 +1083,3 @@ export default function App(): JSX.Element {
     </div>
   );
 }
-.winner-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.winner-name-small {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.chill-text-small {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
