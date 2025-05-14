@@ -1,8 +1,6 @@
 // src/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
-// Firebase 애널리틱스가 필요한 경우 주석 해제
-// import { getAnalytics } from "firebase/analytics";
 
 // Firebase 설정 정보
 const firebaseConfig = {
@@ -16,16 +14,9 @@ const firebaseConfig = {
   measurementId: "G-PZR9FCTP53",
 };
 
-// Firebase 초기화
+// Firebase 초기화 및 데이터베이스 인스턴스 생성
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-// Firebase 애널리틱스가 필요한 경우 주석 해제
-// const analytics = getAnalytics(app);
-
-export { database };
-
-// 초기화 실행
-const isInitialized = initializeFirebase();
 
 // 데이터베이스 인스턴스 내보내기
-export const database = isInitialized ? db : null;
+export { database };
