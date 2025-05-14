@@ -4,13 +4,14 @@ import { getDatabase } from "firebase/database";
 
 // Firebase 설정 정보 - 테스트용 더미 값
 const firebaseConfig = {
-  apiKey: "dummy-key",
-  authDomain: "dummy-app.firebaseapp.com",
-  databaseURL: "https://dummy-app.firebaseio.com",
-  projectId: "dummy-app",
-  storageBucket: "dummy-app.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000000000",
+  apiKey: "AIzaSyCpkm358REiYLIXqD8QlXztvit28Ok91CA",
+  authDomain: "random--rottery-gamee.firebaseapp.com",
+  databaseURL: "https://random--rottery-gamee-default-rtdb.firebaseio.com",
+  projectId: "random--rottery-gamee",
+  storageBucket: "random--rottery-gamee.firebasestorage.app",
+  messagingSenderId: "758980136451",
+  appId: "1:758980136451:web:3e997a933a22a37ba00836",
+  measurementId: "G-PZR9FCTP53",
 };
 
 // 전역 변수로 Firebase 앱과 데이터베이스 인스턴스 관리
