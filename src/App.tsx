@@ -390,10 +390,6 @@ export default function App(): JSX.Element {
     return "none"; // 빛이 나에게 있거나 선택된 경우
   };
 
-  const getLightDirection = () => {
-    // ... 함수 내용 ...
-  };
-
   // 여기에 당첨자 관련 변수 추가
   const showWinnerPopup = gameState?.selectedPlayerId && !isLightGameActive;
   const winner = players.find(
@@ -997,26 +993,50 @@ export default function App(): JSX.Element {
       )}
 
       {/* 빛 이동 게임 화면 */}
-{/* 빛 이동 게임 화면 */}
-{gameMode === "light" && (
-  <div className="game-screen">
-    <div className="player-indicator">{playerNumber}번</div>
+      {gameMode === "light" && (
+        <div className="game-screen">
+          <div className="player-indicator">{playerNumber}번</div>
 
-    <div className="button-container">
-      <button
-        className={`light-button ${isLightActive ? "active" : ""} ${
-          isSelected ? "selected" : ""
-        }`}
-        disabled
-      >
-        {isSelected ? "!" : ""}
-      </button>
-    </div>
+          {/* 빛 방향 효과 추가 */}
+          <div className="light-container">
+            {getLightDirection() === "left" && (
+              <div className="light-left"></div>
+            )}
+            {getLightDirection() === "right" && (
+              <div className="light-right"></div>
+            )}
 
+            <div className="button-container">
+              <button
+                className={`light-button ${isLightActive ? "active" : ""} ${
+                  isSelected ? "selected" : ""
+                }`}
+                disabled
+              >
+                {isSelected ? "!" : ""}
+              </button>
+            </div>
+          </div>
+
+          {/* 방장의 시작 버튼 스타일 변경 */}
           {isAdmin && !isLightGameActive && (
-            <button onClick={startLightGame} className="start-button">
-              {isSelected ? "재시작" : "시작"}
+            <button onClick={startLightGame} className="chill-start-button">
+              {isSelected ? "Chill Again" : "Chill"}
             </button>
+          )}
+
+          {/* 당첨자 팝업 */}
+          {showWinnerPopup && (
+            <>
+              <div className="overlay"></div>
+              <div className="winner-popup">
+                <h3>당첨자</h3>
+                <div className="winner-name">{winner?.name}</div>
+                <div className="chill-text">
+                  Chill<span className="chill-emoji">😎✨</span>
+                </div>
+              </div>
+            </>
           )}
 
           <button onClick={leaveSession} className="back-button">
@@ -1024,7 +1044,6 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
-
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">

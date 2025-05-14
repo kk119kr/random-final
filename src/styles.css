@@ -608,3 +608,148 @@ h1 {
   margin: 20px 0;
   font-size: 14px;
 }
+/* 힙한 Chill 버튼 스타일 */
+.chill-start-button {
+  position: absolute;
+  bottom: 60px;
+  background: linear-gradient(135deg, #6e45e2, #88d3ce);
+  border: none;
+  color: white;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(110, 69, 226, 0.3);
+  transition: all 0.3s ease;
+  font-family: "Poppins", sans-serif;
+  text-transform: uppercase;
+}
+
+.chill-start-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 25px rgba(110, 69, 226, 0.4);
+}
+
+.chill-start-button:active {
+  transform: translateY(2px);
+}
+
+/* 빛 방향 효과 */
+.light-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.light-left {
+  position: absolute;
+  left: -50px;
+  top: 0;
+  height: 100%;
+  width: 150px;
+  background: linear-gradient(to right, rgba(255, 193, 7, 0.7), transparent);
+  animation: pulsateLeft 1.5s infinite alternate;
+}
+
+.light-right {
+  position: absolute;
+  right: -50px;
+  top: 0;
+  height: 100%;
+  width: 150px;
+  background: linear-gradient(to left, rgba(255, 193, 7, 0.7), transparent);
+  animation: pulsateRight 1.5s infinite alternate;
+}
+
+@keyframes pulsateLeft {
+  from {
+    opacity: 0.5;
+    left: -70px;
+  }
+  to {
+    opacity: 0.9;
+    left: -40px;
+  }
+}
+
+@keyframes pulsateRight {
+  from {
+    opacity: 0.5;
+    right: -70px;
+  }
+  to {
+    opacity: 0.9;
+    right: -40px;
+  }
+}
+
+/* 당첨자 팝업 */
+.winner-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #6e45e2, #88d3ce);
+  padding: 30px 50px;
+  border-radius: 16px;
+  text-align: center;
+  z-index: 100;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.winner-popup h3 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.winner-name {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.chill-text {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  letter-spacing: 2px;
+}
+
+.chill-emoji {
+  font-size: 40px;
+  margin-left: 10px;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* 배경에 오버레이 추가 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 90;
+  animation: fadeIn 0.3s forwards;
+}
