@@ -357,9 +357,9 @@ export default function App(): JSX.Element {
 
   // 빛 방향 표시 로직 추가
   const getLightDirection = () => {
-    if (!isLightActive && !isSelected) {
-      // 빛이 나에게 없고 선택되지 않았을 때 방향 계산
-      if (players.length <= 1) return "none";
+    if (!gameState || (!isLightActive && !isSelected)) {
+      // 게임 상태가 없거나, 빛이 나에게 없고 선택되지 않았을 때 방향 계산
+      if (players.length <= 1 || !gameState) return "none";
 
       // 빛이 있는 플레이어 찾기
       const activePlayerIndex = players.findIndex(
