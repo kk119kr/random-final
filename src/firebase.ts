@@ -1,8 +1,10 @@
 // src/firebase.ts
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+// Firebase 애널리틱스가 필요한 경우 주석 해제
+// import { getAnalytics } from "firebase/analytics";
 
-// Firebase 설정 정보 - 테스트용 더미 값
+// Firebase 설정 정보
 const firebaseConfig = {
   apiKey: "AIzaSyCpkm358REiYLIXqD8QlXztvit28Ok91CA",
   authDomain: "random--rottery-gamee.firebaseapp.com",
@@ -14,34 +16,13 @@ const firebaseConfig = {
   measurementId: "G-PZR9FCTP53",
 };
 
-// 전역 변수로 Firebase 앱과 데이터베이스 인스턴스 관리
-let app;
-let db;
+// Firebase 초기화
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+// Firebase 애널리틱스가 필요한 경우 주석 해제
+// const analytics = getAnalytics(app);
 
-// 앱 초기화 함수
-function initializeFirebase() {
-  try {
-    // 이미 초기화된 앱이 있는지 확인
-    if (getApps().length === 0) {
-      // 초기화된 앱이 없으면 새로 생성
-      app = initializeApp(firebaseConfig);
-      console.log("Firebase 앱 초기화 완료");
-    } else {
-      // 이미 초기화된 앱이 있으면 사용
-      app = getApps()[0];
-      console.log("기존 Firebase 앱 사용");
-    }
-
-    // 데이터베이스 초기화
-    db = getDatabase(app);
-    console.log("Firebase 데이터베이스 초기화 완료");
-
-    return true;
-  } catch (error) {
-    console.error("Firebase 초기화 오류:", error);
-    return false;
-  }
-}
+export { database };
 
 // 초기화 실행
 const isInitialized = initializeFirebase();
