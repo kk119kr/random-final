@@ -1014,36 +1014,65 @@ export default function App(): JSX.Element {
                 }`}
                 disabled
               >
-                {isSelected ? "!" : ""}
+                {isLightActive ? "LIGHT" : isSelected ? "!" : "CHILL"}
               </button>
             </div>
           </div>
 
           {/* 방장의 시작 버튼 스타일 변경 */}
           {isAdmin && !isLightGameActive && (
-            <button onClick={startLightGame} className="chill-start-button">
-              {isSelected ? "Chill Again" : "Chill"}
+            <button
+              onClick={() => {
+                // 클릭 효과 생성
+                const buttonElement = document.querySelector(
+                  ".chill-start-button"
+                );
+                if (buttonElement) {
+                  buttonElement.classList.add("chill-button-clicked");
+                  setTimeout(() => {
+                    buttonElement.classList.remove("chill-button-clicked");
+                    startLightGame();
+                  }, 300);
+                } else {
+                  startLightGame();
+                }
+              }}
+              className="chill-start-button"
+            >
+              {isSelected ? "Chill Again" : "Start Chill"}
             </button>
           )}
 
-{/* 당첨자 팝업 */}
-{showWinnerPopup && (
-  <>
-    <div className="overlay" onClick={isAdmin ? startLightGame : undefined}></div>
-    <div className="winner-popup">
-      <h3>당첨자</h3>
-      <div className="winner-name">{winner?.name}</div>
-      <div className="chill-text">
-        Chill<span className="chill-emoji">😎✨</span>
-      </div>
-      {isAdmin && (
-        <button onClick={startLightGame} className="close-popup-button">
-          {isSelected ? "Chill Again" : "Chill"}
-        </button>
+          {/* 당첨자 팝업 */}
+          {showWinnerPopup && (
+            <>
+              <div
+                className="overlay"
+                onClick={isAdmin ? startLightGame : undefined}
+              ></div>
+              <div className="winner-popup">
+                <h3>당첨자</h3>
+                <div className="winner-name">{winner?.name}</div>
+                <div className="chill-text">
+                  Chill<span className="chill-emoji">😎✨</span>
+                </div>
+                {isAdmin && (
+                  <button
+                    onClick={startLightGame}
+                    className="close-popup-button"
+                  >
+                    {isSelected ? "Chill Again" : "Start Chill"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          <button onClick={leaveSession} className="back-button">
+            ×
+          </button>
+        </div>
       )}
-    </div>
-  </>
-)}
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">

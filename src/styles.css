@@ -753,3 +753,40 @@ h1 {
   z-index: 90;
   animation: fadeIn 0.3s forwards;
 }
+.close-popup-button {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.close-popup-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+/* 클릭 효과 추가 */
+.chill-button-clicked {
+  transform: scale(0.95);
+  box-shadow: 0 5px 15px rgba(110, 69, 226, 0.5);
+  transition: all 0.2s ease;
+}
+
+.close-popup-button {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.close-popup-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
