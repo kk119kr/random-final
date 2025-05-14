@@ -1,0 +1,604 @@
+/* src/styles.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #000;
+  color: #fff;
+}
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 홈 화면 */
+.home-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 200px;
+}
+
+.home-button {
+  background-color: #1c1c1e;
+  border: none;
+  color: white;
+  padding: 16px 0;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.home-button:hover {
+  background-color: #2c2c2e;
+}
+
+.home-button:active {
+  transform: scale(0.98);
+}
+
+/* 세션 참여 및 생성 화면 */
+.join-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #8e8e93;
+  text-align: left;
+}
+
+.input-group input {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1c1c1e;
+  color: white;
+  font-size: 16px;
+}
+
+.join-button,
+.create-button {
+  background-color: #007aff;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.back-button-alt {
+  background-color: transparent;
+  border: 1px solid #8e8e93;
+  color: #8e8e93;
+}
+
+.error-message {
+  color: #ff3b30;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 로비 화면 */
+.lobby-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.session-info {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.session-code {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.session-code span {
+  font-weight: bold;
+  font-size: 24px;
+  color: #007aff;
+}
+
+.qr-container {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.session-link {
+  margin: 20px 0;
+  padding: 16px;
+  background-color: #1c1c1e;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.session-code-large {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #007aff;
+}
+
+.link-info {
+  font-size: 14px;
+  color: #8e8e93;
+  word-break: break-all;
+}
+
+.player-list {
+  width: 100%;
+  margin: 16px 0;
+}
+
+.player-list h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  background-color: #1c1c1e;
+  padding: 12px 16px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.player-number {
+  background-color: #2c2c2e;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 12px;
+  font-size: 14px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.player-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.current-player {
+  border: 1px solid #007aff;
+}
+
+.you-badge {
+  position: absolute;
+  right: 12px;
+  font-size: 12px;
+  background-color: #007aff;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.game-selection {
+  width: 100%;
+  margin: 16px 0;
+}
+
+.game-selection h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.game-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-buttons button {
+  background-color: #2c2c2e;
+  border: none;
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.leave-button {
+  margin-top: 20px;
+  background-color: transparent;
+  border: 1px solid #ff3b30;
+  color: #ff3b30;
+}
+
+.waiting-message {
+  color: #8e8e93;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+/* 게임 화면 공통 */
+.game-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-header {
+  position: absolute;
+  top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.round-indicator {
+  font-size: 14px;
+  color: #8e8e93;
+  font-weight: 500;
+}
+
+.button-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.back-button {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: none;
+  border: none;
+  color: #8e8e93;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 눈치 게임 */
+.game-button {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background-color: #007bff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 24px rgba(0, 123, 255, 0.3);
+  position: relative;
+  overflow: hidden; /* 버튼 바깥으로 넘치는 부분 숨김 */
+}
+
+.game-button:active {
+  transform: scale(0.95);
+}
+
+.game-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tap-text {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4); /* 흰색 반투명 */
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  opacity: 1;
+  animation: ripple 1s linear forwards;
+  pointer-events: none; /* 클릭 이벤트 방해 방지 */
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 500px;
+    height: 500px;
+    opacity: 0;
+  }
+}
+
+.score-bubble {
+  position: absolute;
+  top: 50px;
+  font-size: 36px;
+  font-weight: bold;
+  animation: fadeIn 0.5s;
+}
+
+.next-button {
+  position: absolute;
+  bottom: 60px;
+  background-color: #1c1c1e;
+  border: none;
+  color: white;
+  padding: 14px 30px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* 빛 이동 게임 */
+.player-indicator {
+  position: absolute;
+  top: 16px;
+  font-size: 12px;
+  color: #8e8e93;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background-color: rgba(28, 28, 30, 0.6);
+}
+
+.light-button {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background-color: #1c1c1e;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 30px rgba(28, 28, 30, 0.5);
+}
+
+.light-button.active {
+  background-color: #ffc107;
+  color: #000;
+  box-shadow: 0 0 40px rgba(255, 193, 7, 0.8);
+  animation: pulse 0.5s infinite alternate;
+}
+
+.light-button.selected {
+  background-color: #ffc107;
+  color: #000;
+  box-shadow: 0 0 50px rgba(255, 193, 7, 0.9);
+  animation: selectedPulse 1.5s infinite;
+}
+
+.start-button {
+  position: absolute;
+  bottom: 60px;
+  background-color: #34c759;
+  border: none;
+  color: white;
+  padding: 14px 30px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* 결과 화면 */
+.result-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.total-score {
+  font-size: 28px;
+  font-weight: 500;
+  margin: 20px 0 30px;
+}
+
+.score-list {
+  width: 80%;
+  max-width: 300px;
+  margin-bottom: 40px;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #2c2c2e;
+}
+
+.round-label {
+  color: #8e8e93;
+}
+
+.score-value {
+  font-weight: 500;
+}
+
+.new-game-button {
+  background-color: #1c1c1e;
+  border: none;
+  color: white;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* 유틸리티 클래스 */
+.positive {
+  color: #34c759;
+}
+
+.negative {
+  color: #ff3b30;
+}
+
+/* 간소화된 QR 코드 */
+.simple-qr-code {
+  border: 1px solid #333;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+  }
+  to {
+    box-shadow: 0 0 40px rgba(255, 193, 7, 0.8);
+  }
+}
+
+@keyframes selectedPulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 40px rgba(255, 193, 7, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+  }
+}
+.game-selection h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.game-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-buttons button {
+  background-color: #2c2c2e;
+  border: none;
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.leave-button {
+  margin-top: 20px;
+  background-color: transparent;
+  border: 1px solid #ff3b30;
+  color: #ff3b30;
+}
+
+.waiting-message {
+  color: #8e8e93;
+  margin: 20px 0;
+  font-size: 14px;
+}
