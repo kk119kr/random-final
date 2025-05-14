@@ -628,7 +628,7 @@ export default function App(): JSX.Element {
       mode: "light",
       isGameActive: true,
       activeLightPlayerId: null,
-      selectedPlayerId: null, // 이미 null로 설정되어 있네요
+      selectedPlayerId: null,
     });
 
     setIsLightGameActive(true);
@@ -638,7 +638,8 @@ export default function App(): JSX.Element {
     startLightGameAnimation();
   };
 
-  // 빛 이동 애니메이션
+  // startLightGameAnimation 함수 전체 구현 (속도 조절 로직 포함)
+
   const startLightGameAnimation = () => {
     if (!sessionId || !isAdmin || players.length === 0) return;
 
@@ -646,8 +647,15 @@ export default function App(): JSX.Element {
       clearInterval(lightTimerRef.current);
     }
 
+    // 플레이어 수 확인
+    const playerCount = players.length;
+    if (playerCount < 2) return;
+
     let cycleCount = 0;
-    const maxCycles = 10 + Math.floor(Math.random() * 15); // 10-25 사이클
+    // 최소 3바퀴(playerCount * 3)를 보장하고, 그 후 10~15 사이의 랜덤한 추가 이동
+    const minCycles = playerCount * 3;
+    const maxCycles = minCycles + 10 + Math.floor(Math.random() * 6);
+
     let currentPlayerIndex = 0;
 
     // 첫 번째 플레이어부터 시작
@@ -656,52 +664,71 @@ export default function App(): JSX.Element {
       activeLightPlayerId: currentPlayer.id,
     });
 
-    let speed = 700; // 초기 이동 속도 (ms)
+    // 빛 이동 속도 설정 (초기: 700ms, 최소: 200ms)
+    let initialSpeed = 700; // 초기 속도
+    let speed = initialSpeed;
+    let slowdownStarted = false;
 
-    lightTimerRef.current = window.setInterval(() => {
+    const moveLight = () => {
       // 다음 플레이어로 이동
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
       const nextPlayer = players[currentPlayerIndex];
 
+      // 데이터베이스 업데이트
       updateGameState({
         activeLightPlayerId: nextPlayer.id,
       });
 
       cycleCount++;
 
-      // 속도 점점 빨라지게
-      if (cycleCount > 5) {
-        speed = Math.max(speed - 50, 200);
-        clearInterval(lightTimerRef.current!);
-        lightTimerRef.current = null; // 이 줄을 추가하세요
-
-        lightTimerRef.current = window.setInterval(() => {
-          // 다음 플레이어로 이동
-          currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-          const nextPlayer = players[currentPlayerIndex];
-
-          updateGameState({
-            activeLightPlayerId: nextPlayer.id,
-          });
-
-          cycleCount++;
-
-          // 일정 확률로 게임 종료
-          if (cycleCount > maxCycles && Math.random() < 0.3) {
-            clearInterval(lightTimerRef.current!);
-            lightTimerRef.current = null;
-
-            const selectedPlayer = players[currentPlayerIndex];
-
-            // 게임 종료 상태 저장
-            updateGameState({
-              isGameActive: false,
-              selectedPlayerId: selectedPlayer.id,
-            });
-          }
-        }, speed);
+      // 속도 조절 로직
+      // 처음 50% 동안은 점점 빨라지고, 나머지 50%는 점점 느려짐
+      if (cycleCount < maxCycles / 2) {
+        // 점점 빨라지는 단계
+        speed = Math.max(initialSpeed - cycleCount * 20, 200);
+      } else if (
+        !slowdownStarted &&
+        cycleCount >= maxCycles - playerCount * 2
+      ) {
+        // 마지막 2바퀴부터 점점 느려지기 시작
+        slowdownStarted = true;
+        speed = 300; // 느려지기 시작할 때 속도
+      } else if (slowdownStarted) {
+        // 점점 느려지는 단계
+        speed = Math.min(speed + 50, 700); // 점점 느려짐 (최대 700ms까지)
       }
-    }, speed);
+
+      // 타이머 재설정
+      clearTimeout(lightTimerRef.current!);
+      lightTimerRef.current = null;
+
+      // 게임이 완전히 끝났는지 확인
+      if (cycleCount >= maxCycles) {
+        // 게임 종료 상태 저장
+        const selectedPlayer = players[currentPlayerIndex];
+        updateGameState({
+          isGameActive: false,
+          selectedPlayerId: selectedPlayer.id,
+        });
+
+        // 시각적 효과를 위해 마지막 플레이어에게 빛이 멈추는 지연 추가
+        setTimeout(() => {
+          // 게임 종료 상태 확인 (추가 안전 장치)
+          updateGameState({
+            isGameActive: false,
+            selectedPlayerId: selectedPlayer.id,
+          });
+        }, 500);
+
+        return; // 게임 종료
+      }
+
+      // 다음 이동을 위한 타이머 설정
+      lightTimerRef.current = window.setTimeout(moveLight, speed);
+    };
+
+    // 첫 번째 이동 시작
+    lightTimerRef.current = window.setTimeout(moveLight, speed);
   };
 
   // 새 게임 시작 함수
@@ -998,13 +1025,20 @@ export default function App(): JSX.Element {
         <div className="game-screen">
           <div className="player-indicator">{playerNumber}번</div>
 
-          {/* 빛 방향 효과 추가 */}
+          {/* 빛 방향 효과 추가 - 수정된 부분 */}
           <div className="light-container">
             {getLightDirection() === "left" && (
               <div className="light-left"></div>
             )}
             {getLightDirection() === "right" && (
               <div className="light-right"></div>
+            )}
+            {/* 빛이 양쪽으로 새는 효과 추가 */}
+            {getLightDirection() === "both" && (
+              <>
+                <div className="light-both-left"></div>
+                <div className="light-both-right"></div>
+              </>
             )}
 
             <div className="button-container">
@@ -1036,6 +1070,7 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
+
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">

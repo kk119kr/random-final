@@ -808,3 +808,158 @@ h1 {
   font-weight: 700;
   letter-spacing: 1px;
 }
+/* 빛 방향 효과 개선 */
+.light-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 왼쪽에서 오는 빛 효과 개선 */
+.light-left {
+  position: absolute;
+  left: -100px;
+  top: 0;
+  height: 100%;
+  width: 250px;
+  background: linear-gradient(
+    to right,
+    rgba(255, 193, 7, 0),
+    rgba(255, 193, 7, 0.4),
+    rgba(255, 193, 7, 0.7),
+    transparent
+  );
+  animation: pulsateLeft 0.8s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+/* 오른쪽에서 오는 빛 효과 개선 */
+.light-right {
+  position: absolute;
+  right: -100px;
+  top: 0;
+  height: 100%;
+  width: 250px;
+  background: linear-gradient(
+    to left,
+    rgba(255, 193, 7, 0),
+    rgba(255, 193, 7, 0.4),
+    rgba(255, 193, 7, 0.7),
+    transparent
+  );
+  animation: pulsateRight 0.8s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+/* 양쪽에서 모두 빛이 새는 효과 추가 */
+.light-both-left {
+  position: absolute;
+  left: -80px;
+  top: 0;
+  height: 100%;
+  width: 200px;
+  background: linear-gradient(
+    to right,
+    rgba(255, 193, 7, 0),
+    rgba(255, 193, 7, 0.3),
+    rgba(255, 193, 7, 0.5),
+    transparent
+  );
+  animation: pulsateLeft 1s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+.light-both-right {
+  position: absolute;
+  right: -80px;
+  top: 0;
+  height: 100%;
+  width: 200px;
+  background: linear-gradient(
+    to left,
+    rgba(255, 193, 7, 0),
+    rgba(255, 193, 7, 0.3),
+    rgba(255, 193, 7, 0.5),
+    transparent
+  );
+  animation: pulsateRight 1s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+/* 빛이 전달되는 애니메이션 효과 개선 */
+@keyframes pulsateLeft {
+  from {
+    opacity: 0.4;
+    left: -150px;
+    width: 200px;
+  }
+  to {
+    opacity: 0.85;
+    left: -50px;
+    width: 300px;
+  }
+}
+
+@keyframes pulsateRight {
+  from {
+    opacity: 0.4;
+    right: -150px;
+    width: 200px;
+  }
+  to {
+    opacity: 0.85;
+    right: -50px;
+    width: 300px;
+  }
+}
+
+/* 활성화된 빛 버튼 효과 개선 */
+.light-button.active {
+  background-color: #ffc107;
+  color: #000;
+  box-shadow: 0 0 40px rgba(255, 193, 7, 0.8), 0 0 60px rgba(255, 193, 7, 0.4);
+  animation: pulseActive 0.7s infinite alternate ease-in-out;
+  z-index: 2;
+}
+
+/* 선택된 버튼 효과 개선 */
+.light-button.selected {
+  background-color: #ffc107;
+  color: #000;
+  box-shadow: 0 0 50px rgba(255, 193, 7, 0.9), 0 0 100px rgba(255, 193, 7, 0.5);
+  animation: selectedPulseImproved 1.5s infinite;
+  z-index: 2;
+}
+
+/* 활성화된 버튼 펄스 애니메이션 개선 */
+@keyframes pulseActive {
+  from {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6), 0 0 30px rgba(255, 193, 7, 0.3);
+    transform: scale(0.98);
+  }
+  to {
+    box-shadow: 0 0 40px rgba(255, 193, 7, 0.8), 0 0 60px rgba(255, 193, 7, 0.4);
+    transform: scale(1);
+  }
+}
+
+/* 선택된 버튼 펄스 애니메이션 개선 */
+@keyframes selectedPulseImproved {
+  0% {
+    box-shadow: 0 0 30px rgba(255, 193, 7, 0.7), 0 0 50px rgba(255, 193, 7, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(255, 193, 7, 0.9),
+      0 0 120px rgba(255, 193, 7, 0.5);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 30px rgba(255, 193, 7, 0.7), 0 0 50px rgba(255, 193, 7, 0.3);
+    transform: scale(1);
+  }
+}
