@@ -1012,44 +1012,24 @@ export default function App(): JSX.Element {
                 className={`light-button ${isLightActive ? "active" : ""} ${
                   isSelected ? "selected" : ""
                 }`}
-                disabled
+                onClick={
+                  isAdmin && !isLightGameActive ? startLightGame : undefined
+                }
+                disabled={!isAdmin || isLightGameActive}
               >
-                {isLightActive ? "CHILL" : isSelected ? "!" : "CHILL"}
+                {isSelected ? (
+                  <div className="winner-content">
+                    <div className="winner-name-small">{winner?.name}</div>
+                    <div className="chill-text-small">Chill</div>
+                  </div>
+                ) : isAdmin && !isLightGameActive ? (
+                  "Chill"
+                ) : (
+                  ""
+                )}
               </button>
             </div>
           </div>
-
-          {/* 방장의 시작 버튼 스타일 변경 */}
-          {isAdmin && !isLightGameActive && (
-            <button onClick={startLightGame} className="chill-start-button">
-              {isSelected ? "Chill Again" : "Chill"}
-            </button>
-          )}
-
-          {/* 당첨자 팝업 */}
-          {showWinnerPopup && (
-            <>
-              <div
-                className="overlay"
-                onClick={isAdmin ? startLightGame : undefined}
-              ></div>
-              <div className="winner-popup">
-                <h3>당첨자</h3>
-                <div className="winner-name">{winner?.name}</div>
-                <div className="chill-text">
-                  Chill<span className="chill-emoji">😎✨</span>
-                </div>
-                {isAdmin && (
-                  <button
-                    onClick={startLightGame}
-                    className="close-popup-button"
-                  >
-                    {isSelected ? "Chill Again" : "Chill"}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
 
           <button onClick={leaveSession} className="back-button">
             ×
@@ -1102,4 +1082,22 @@ export default function App(): JSX.Element {
       )}
     </div>
   );
+}
+.winner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.winner-name-small {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.chill-text-small {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
