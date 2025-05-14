@@ -628,7 +628,7 @@ export default function App(): JSX.Element {
       mode: "light",
       isGameActive: true,
       activeLightPlayerId: null,
-      selectedPlayerId: null,
+      selectedPlayerId: null, // 이미 null로 설정되어 있네요
     });
 
     setIsLightGameActive(true);
@@ -1026,25 +1026,24 @@ export default function App(): JSX.Element {
             </button>
           )}
 
-          {/* 당첨자 팝업 */}
-          {showWinnerPopup && (
-            <>
-              <div className="overlay"></div>
-              <div className="winner-popup">
-                <h3>당첨자</h3>
-                <div className="winner-name">{winner?.name}</div>
-                <div className="chill-text">
-                  Chill<span className="chill-emoji">😎✨</span>
-                </div>
-              </div>
-            </>
-          )}
-
-          <button onClick={leaveSession} className="back-button">
-            ×
-          </button>
-        </div>
+{/* 당첨자 팝업 */}
+{showWinnerPopup && (
+  <>
+    <div className="overlay" onClick={isAdmin ? startLightGame : undefined}></div>
+    <div className="winner-popup">
+      <h3>당첨자</h3>
+      <div className="winner-name">{winner?.name}</div>
+      <div className="chill-text">
+        Chill<span className="chill-emoji">😎✨</span>
+      </div>
+      {isAdmin && (
+        <button onClick={startLightGame} className="close-popup-button">
+          {isSelected ? "Chill Again" : "Chill"}
+        </button>
       )}
+    </div>
+  </>
+)}
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">
