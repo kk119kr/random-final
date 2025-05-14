@@ -1014,32 +1014,15 @@ export default function App(): JSX.Element {
                 }`}
                 disabled
               >
-                {isLightActive ? "LIGHT" : isSelected ? "!" : "CHILL"}
+                {isLightActive ? "CHILL" : isSelected ? "!" : "CHILL"}
               </button>
             </div>
           </div>
 
           {/* 방장의 시작 버튼 스타일 변경 */}
           {isAdmin && !isLightGameActive && (
-            <button
-              onClick={() => {
-                // 클릭 효과 생성
-                const buttonElement = document.querySelector(
-                  ".chill-start-button"
-                );
-                if (buttonElement) {
-                  buttonElement.classList.add("chill-button-clicked");
-                  setTimeout(() => {
-                    buttonElement.classList.remove("chill-button-clicked");
-                    startLightGame();
-                  }, 300);
-                } else {
-                  startLightGame();
-                }
-              }}
-              className="chill-start-button"
-            >
-              {isSelected ? "Chill Again" : "Start Chill"}
+            <button onClick={startLightGame} className="chill-start-button">
+              {isSelected ? "Chill Again" : "Chill"}
             </button>
           )}
 
@@ -1061,7 +1044,7 @@ export default function App(): JSX.Element {
                     onClick={startLightGame}
                     className="close-popup-button"
                   >
-                    {isSelected ? "Chill Again" : "Start Chill"}
+                    {isSelected ? "Chill Again" : "Chill"}
                   </button>
                 )}
               </div>
