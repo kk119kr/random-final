@@ -45,7 +45,14 @@ const SafeQRCode = ({ value, size }: { value: string; size: number }) => {
   }
 };
 
-type GameMode = "home" | "timing" | "light" | "result" | "join" | "lobby";
+type GameMode =
+  | "home"
+  | "timing"
+  | "light"
+  | "result"
+  | "join"
+  | "lobby"
+  | "create";
 type PlayerScore = { round: number; points: number };
 
 // 세션 데이터 타입
