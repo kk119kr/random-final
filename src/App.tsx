@@ -778,13 +778,13 @@ export default function App(): JSX.Element {
     } else if (mode === "light") {
       updateGameState({
         mode: "light",
-        isGameActive: true,
+        isGameActive: false, // 이 부분을 false로 변경
         activeLightPlayerId: null,
         selectedPlayerId: null,
       });
 
       setGameMode("light");
-      startLightGame();
+      // startLightGame 함수 호출 제거
     }
   };
 
