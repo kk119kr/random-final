@@ -602,3 +602,9 @@ h1 {
   margin: 20px 0;
   font-size: 14px;
 }
+
+.waiting-message {
+  color: #8e8e93;
+  margin: 20px 0;
+  font-size: 14px;
+}
