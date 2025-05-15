@@ -314,9 +314,12 @@ export default function App(): JSX.Element {
       setIsGameActive(gameState.isGameActive);
       setButtonColor(gameState.buttonColor);
       setClickOrder(gameState.clickOrder);
-      if (gameState.mode === "result") {
-        calculateRankings(gameState.timingScores);
-      }
+ 
+      // 결과 화면에서 랭킹 표시
+ if (gameState.mode === "result") {
+  calculateRankings(gameState.timingScores);
+}
+};
 
       // 내 점수 가져오기
       if (
@@ -1224,6 +1227,37 @@ export default function App(): JSX.Element {
               </div>
             ))}
           </div>
+          
+          {/* 전체 플레이어 랭킹 표시 */}
+<div className="ranking-container">
+  <h3>전체 랭킹</h3>
+  <div className="ranking-list">
+    {playerRankings.map((player, index) => (
+      <div 
+        key={player.id} 
+        className={`ranking-item ${player.id === playerId ? "current-player" : ""}`}
+      >
+        <div className="rank-number">{index + 1}</div>
+        <div className="player-info">
+          <span className="player-name">{player.name}</span>
+          <span className="player-number">({player.number}번)</span>
+        </div>
+        <div 
+          className={`player-score ${
+            player.totalScore > 0
+              ? "positive"
+              : player.totalScore < 0
+              ? "negative"
+              : "neutral"
+          }`}
+        >
+          {player.totalScore > 0 ? `+${player.totalScore}` : player.totalScore}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
           {isAdmin ? (
             <button onClick={startNewGame} className="new-game-button">
