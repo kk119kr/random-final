@@ -1,4 +1,6 @@
-/* src/styles.css */
+/* 정리된 전체 styles.css */
+
+/* 기본 설정 */
 body {
   margin: 0;
   padding: 0;
@@ -167,29 +169,6 @@ h1 {
   margin-top: 10px;
   font-size: 14px;
   color: #333;
-}
-
-.session-link {
-  margin: 20px 0;
-  padding: 16px;
-  background-color: #1c1c1e;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.session-code-large {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #007aff;
-}
-
-.link-info {
-  font-size: 14px;
-  color: #8e8e93;
-  word-break: break-all;
 }
 
 .player-list {
@@ -431,9 +410,10 @@ h1 {
   background-color: rgba(28, 28, 30, 0.6);
 }
 
+/* 빛 이동 게임 버튼 */
 .light-button {
-  width: 240px;
-  height: 240px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
   background-color: #1c1c1e;
   border: none;
@@ -445,10 +425,19 @@ h1 {
   color: white;
   transition: all 0.2s ease;
   box-shadow: 0 0 30px rgba(28, 28, 30, 0.5);
+  z-index: 2;
+}
+
+.light-button.active {
+  background-color: #ffdc14; /* 밝은 노란색 */
+  color: #000;
+  box-shadow: 0 0 40px rgba(255, 220, 20, 0.8), 0 0 60px rgba(255, 220, 20, 0.4);
+  animation: pulseActive 0.7s infinite alternate ease-in-out;
+  z-index: 2;
 }
 
 .light-button.selected {
-  background-color: #ffdc14; /* 기존보다 더 밝은 노란색 */
+  background-color: #ffdc14; /* 밝은 노란색 */
   color: #000;
   box-shadow: 0 0 50px rgba(255, 220, 20, 0.9),
     0 0 100px rgba(255, 220, 20, 0.5);
@@ -456,17 +445,199 @@ h1 {
   z-index: 2;
 }
 
-.start-button {
+/* 빛 컨테이너 */
+.light-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 빛 효과 - 왼쪽 */
+.light-left {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  background-color: rgba(255, 220, 0, 0.3);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0)
+  );
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+  z-index: 1;
+  animation: pulseLeftNew 2s infinite alternate ease-in-out;
+}
+
+/* 빛 효과 - 오른쪽 */
+.light-right {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  background-color: rgba(255, 220, 0, 0.3);
+  -webkit-mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0)
+  );
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+  z-index: 1;
+  animation: pulseRightNew 2s infinite alternate ease-in-out;
+}
+
+/* 빛 효과 - 양쪽 왼쪽 */
+.light-both-left {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  background-color: rgba(255, 220, 0, 0.25);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.35),
+    rgba(0, 0, 0, 0)
+  );
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  z-index: 1;
+  animation: pulseBothLeftNew 2.5s infinite alternate ease-in-out;
+}
+
+/* 빛 효과 - 양쪽 오른쪽 */
+.light-both-right {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  background-color: rgba(255, 220, 0, 0.25);
+  -webkit-mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.35),
+    rgba(0, 0, 0, 0)
+  );
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+  z-index: 1;
+  animation: pulseBothRightNew 2.5s infinite alternate ease-in-out;
+}
+
+/* 당첨자 콘텐츠 */
+.winner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+/* 당첨자 이름 - 큰 크기 */
+.winner-name-large {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #000000;
+  /* 더 강력한 3D 텍스트 효과 */
+  text-shadow: 0px 2px 0px #ffffff, 0px 1px 0px #ffffff,
+    0px -1px 0px rgba(0, 0, 0, 0.3), 0px -2px 1px rgba(0, 0, 0, 0.2),
+    1px 2px 2px rgba(255, 255, 255, 0.8), -1px -1px 1px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Chill 텍스트 - 큰 크기 */
+.chill-text-large {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #000000;
+  /* 더 강력한 3D 텍스트 효과 */
+  text-shadow: 0px 2px 0px #ffffff, 0px 1px 0px #ffffff,
+    0px -1px 0px rgba(0, 0, 0, 0.3), 0px -2px 1px rgba(0, 0, 0, 0.2),
+    1px 2px 2px rgba(255, 255, 255, 0.8), -1px -1px 1px rgba(0, 0, 0, 0.2);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 다시 하기 버튼 */
+.restart-button {
   position: absolute;
   bottom: 60px;
-  background-color: #34c759;
+  background: linear-gradient(135deg, #6e45e2, #88d3ce);
   border: none;
   color: white;
-  padding: 14px 30px;
+  padding: 16px 30px;
   border-radius: 12px;
-  font-size: 17px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 16px rgba(110, 69, 226, 0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.restart-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px rgba(110, 69, 226, 0.4);
+}
+
+.restart-button:active {
+  transform: translateY(1px);
+}
+
+/* 빛 효과 애니메이션 */
+@keyframes pulseLeftNew {
+  from {
+    opacity: 0.3;
+    width: 15%;
+  }
+  to {
+    opacity: 0.5;
+    width: 20%;
+  }
+}
+
+@keyframes pulseRightNew {
+  from {
+    opacity: 0.3;
+    width: 15%;
+  }
+  to {
+    opacity: 0.5;
+    width: 20%;
+  }
+}
+
+@keyframes pulseBothLeftNew {
+  from {
+    opacity: 0.25;
+    width: 12%;
+  }
+  to {
+    opacity: 0.4;
+    width: 18%;
+  }
+}
+
+@keyframes pulseBothRightNew {
+  from {
+    opacity: 0.25;
+    width: 12%;
+  }
+  to {
+    opacity: 0.4;
+    width: 18%;
+  }
 }
 
 /* 결과 화면 */
@@ -524,13 +695,6 @@ h1 {
   color: #ff3b30;
 }
 
-/* 간소화된 QR 코드 */
-.simple-qr-code {
-  border: 1px solid #333;
-  font-size: 12px;
-  overflow: hidden;
-}
-
 /* 애니메이션 */
 @keyframes fadeIn {
   from {
@@ -543,366 +707,6 @@ h1 {
   }
 }
 
-@keyframes pulse {
-  from {
-    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
-  }
-  to {
-    box-shadow: 0 0 40px rgba(255, 193, 7, 0.8);
-  }
-}
-
-@keyframes selectedPulse {
-  0% {
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 40px rgba(255, 193, 7, 0.9);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
-  }
-}
-.game-selection h3 {
-  margin-bottom: 12px;
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.game-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.game-buttons button {
-  background-color: #2c2c2e;
-  border: none;
-  color: white;
-  padding: 16px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.leave-button {
-  margin-top: 20px;
-  background-color: transparent;
-  border: 1px solid #ff3b30;
-  color: #ff3b30;
-}
-
-.waiting-message {
-  color: #8e8e93;
-  margin: 20px 0;
-  font-size: 14px;
-}
-
-.waiting-message {
-  color: #8e8e93;
-  margin: 20px 0;
-  font-size: 14px;
-}
-/* 힙한 Chill 버튼 스타일 */
-.chill-start-button {
-  position: absolute;
-  bottom: 60px;
-  background: linear-gradient(135deg, #6e45e2, #88d3ce);
-  border: none;
-  color: white;
-  padding: 16px 40px;
-  border-radius: 12px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(110, 69, 226, 0.3);
-  transition: all 0.3s ease;
-  font-family: "Poppins", sans-serif;
-  text-transform: uppercase;
-}
-
-.chill-start-button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 25px rgba(110, 69, 226, 0.4);
-}
-
-.chill-start-button:active {
-  transform: translateY(2px);
-}
-
-.light-right {
-  position: absolute;
-  right: -50px;
-  top: 0;
-  height: 100%;
-  width: 150px;
-  background: linear-gradient(to left, rgba(255, 193, 7, 0.7), transparent);
-  animation: pulsateRight 1.5s infinite alternate;
-}
-
-@keyframes pulsateLeft {
-  from {
-    opacity: 0.5;
-    left: -70px;
-  }
-  to {
-    opacity: 0.9;
-    left: -40px;
-  }
-}
-
-@keyframes pulsateRight {
-  from {
-    opacity: 0.5;
-    right: -70px;
-  }
-  to {
-    opacity: 0.9;
-    right: -40px;
-  }
-}
-
-/* 당첨자 팝업 */
-.winner-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #6e45e2, #88d3ce);
-  padding: 30px 50px;
-  border-radius: 16px;
-  text-align: center;
-  z-index: 100;
-  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.winner-popup h3 {
-  font-size: 28px;
-  margin-bottom: 10px;
-  color: white;
-}
-
-.winner-name {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 15px;
-  color: white;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.chill-text {
-  font-size: 32px;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  letter-spacing: 2px;
-}
-
-.chill-emoji {
-  font-size: 40px;
-  margin-left: 10px;
-}
-
-@keyframes popIn {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* 배경에 오버레이 추가 */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 90;
-  animation: fadeIn 0.3s forwards;
-}
-.close-popup-button {
-  margin-top: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.close-popup-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-/* 클릭 효과 추가 */
-.chill-button-clicked {
-  transform: scale(0.95);
-  box-shadow: 0 5px 15px rgba(110, 69, 226, 0.5);
-  transition: all 0.2s ease;
-}
-
-.close-popup-button {
-  margin-top: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.close-popup-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.winner-name-small {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.chill-text-small {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-/* 빛 방향 효과 (아이폰 크기에 맞게 조정) */
-.light-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* 왼쪽에서 오는 빛 효과 - 더 작게 */
-.light-left {
-  position: absolute;
-  left: -40px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 180px; /* 세로 크기 축소 */
-  width: 120px; /* 가로 크기 축소 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 193, 7, 0),
-    rgba(255, 193, 7, 0.3),
-    rgba(255, 193, 7, 0.5),
-    transparent
-  );
-  animation: pulsateLeftSmall 0.8s infinite alternate ease-in-out;
-  z-index: 1;
-  opacity: 0.7; /* 투명도 증가 */
-}
-
-/* 오른쪽에서 오는 빛 효과 - 더 작게 */
-.light-right {
-  position: absolute;
-  right: -40px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 180px; /* 세로 크기 축소 */
-  width: 120px; /* 가로 크기 축소 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 193, 7, 0),
-    rgba(255, 193, 7, 0.3),
-    rgba(255, 193, 7, 0.5),
-    transparent
-  );
-  animation: pulsateRightSmall 0.8s infinite alternate ease-in-out;
-  z-index: 1;
-  opacity: 0.7; /* 투명도 증가 */
-}
-
-/* 양쪽에서 모두 빛이 새는 효과 - 더 작게 */
-.light-both-left {
-  position: absolute;
-  left: -30px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 150px; /* 세로 크기 축소 */
-  width: 100px; /* 가로 크기 축소 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 193, 7, 0),
-    rgba(255, 193, 7, 0.2),
-    rgba(255, 193, 7, 0.4),
-    transparent
-  );
-  animation: pulsateLeftSmall 1s infinite alternate ease-in-out;
-  z-index: 1;
-  opacity: 0.65; /* 투명도 증가 */
-}
-
-.light-both-right {
-  position: absolute;
-  right: -30px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 150px; /* 세로 크기 축소 */
-  width: 100px; /* 가로 크기 축소 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 193, 7, 0),
-    rgba(255, 193, 7, 0.2),
-    rgba(255, 193, 7, 0.4),
-    transparent
-  );
-  animation: pulsateRightSmall 1s infinite alternate ease-in-out;
-  z-index: 1;
-  opacity: 0.65; /* 투명도 증가 */
-}
-
-/* 빛이 전달되는 애니메이션 효과 개선 */
-@keyframes pulsateLeftSmall {
-  from {
-    opacity: 0.3;
-    left: -50px;
-    width: 90px;
-  }
-  to {
-    opacity: 0.65;
-    left: -25px;
-    width: 110px;
-  }
-}
-
-@keyframes pulsateRightSmall {
-  from {
-    opacity: 0.3;
-    right: -50px;
-    width: 90px;
-  }
-  to {
-    opacity: 0.65;
-    right: -25px;
-    width: 110px;
-  }
-}
-
-/* 활성화된 빛 버튼 효과 개선 */
-.light-button.active {
-  background-color: #ffdc14; /* 기존보다 더 밝은 노란색 */
-  color: #000;
-  box-shadow: 0 0 40px rgba(255, 220, 20, 0.8), 0 0 60px rgba(255, 220, 20, 0.4);
-  animation: pulseActive 0.7s infinite alternate ease-in-out;
-  z-index: 2;
-}
-
-/* 활성화된 버튼 펄스 애니메이션 개선 */
 @keyframes pulseActive {
   from {
     box-shadow: 0 0 20px rgba(255, 193, 7, 0.6), 0 0 30px rgba(255, 193, 7, 0.3);
@@ -914,7 +718,6 @@ h1 {
   }
 }
 
-/* 선택된 버튼 펄스 애니메이션 개선 */
 @keyframes selectedPulseImproved {
   0% {
     box-shadow: 0 0 30px rgba(255, 193, 7, 0.7), 0 0 50px rgba(255, 193, 7, 0.3);
@@ -929,727 +732,4 @@ h1 {
     box-shadow: 0 0 30px rgba(255, 193, 7, 0.7), 0 0 50px rgba(255, 193, 7, 0.3);
     transform: scale(1);
   }
-}
-
-.light-button {
-  width: 280px; /* 240px에서 280px로 크기 증가 */
-  height: 280px; /* 240px에서 280px로 크기 증가 */
-  border-radius: 50%;
-  background-color: #1c1c1e;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 30px rgba(28, 28, 30, 0.5);
-}
-
-/* 당첨자 콘텐츠를 위한 새로운 스타일 추가 */
-.winner-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 90%;
-  /* 내부 패딩 추가 */
-  padding: 15px 0;
-  /* 약간의 배경색 추가 (선택 사항) */
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-}
-
-/* 기존 작은 텍스트 유지 */
-.winner-name-small {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.chill-text-small {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* 더 큰 텍스트 스타일 추가 */
-.winner-name-large {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #000000; /* 더 진한 검정색 사용 */
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6); /* 더 강한 텍스트 그림자 */
-  letter-spacing: 1px; /* 글자 간격 추가 */
-  -webkit-font-smoothing: antialiased; /* 아이폰에서 폰트 렌더링 개선 */
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.chill-text-large {
-  font-size: 28px;
-  font-weight: 800; /* 더 두꺼운 글꼴 */
-  letter-spacing: 2px;
-  color: #000000; /* 더 진한 검정색 사용 */
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6); /* 더 강한 텍스트 그림자 */
-  -webkit-font-smoothing: antialiased; /* 아이폰에서 폰트 렌더링 개선 */
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 다시 하기 버튼 스타일 (방장용) */
-.restart-button {
-  position: absolute;
-  bottom: 60px;
-  background: linear-gradient(135deg, #6e45e2, #88d3ce);
-  border: none;
-  color: white;
-  padding: 16px 30px;
-  border-radius: 12px;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 8px 16px rgba(110, 69, 226, 0.3);
-  transition: all 0.3s ease;
-  z-index: 10;
-}
-
-.restart-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 20px rgba(110, 69, 226, 0.4);
-}
-
-.restart-button:active {
-  transform: translateY(1px);
-}
-
-/* 빛 효과를 화면 가장자리에서만 살짝 새어나오는 느낌으로 수정 */
-
-/* 빛 컨테이너 유지 */
-.light-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* 왼쪽에서 오는 빛 효과 - 가장자리에서만 살짝 */
-.light-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 20%; /* 빛 범위를 줄임 */
-  /* 가장자리에서 빠르게 사라지는 그라데이션 */
-  background: radial-gradient(
-    ellipse at left,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 40%,
-    rgba(255, 220, 0, 0) 70%
-  );
-  animation: subtleGlowLeft 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 오른쪽에서 오는 빛 효과 - 가장자리에서만 살짝 */
-.light-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 20%; /* 빛 범위를 줄임 */
-  /* 가장자리에서 빠르게 사라지는 그라데이션 */
-  background: radial-gradient(
-    ellipse at right,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 40%,
-    rgba(255, 220, 0, 0) 70%
-  );
-  animation: subtleGlowRight 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 양쪽에서 모두 빛이 새는 효과 - 가장자리에서만 살짝 */
-.light-both-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 15%; /* 빛 범위를 줄임 */
-  /* 가장자리에서 빠르게 사라지는 그라데이션 */
-  background: radial-gradient(
-    ellipse at left,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 40%,
-    rgba(255, 220, 0, 0) 60%
-  );
-  animation: subtleGlowBothLeft 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-.light-both-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 15%; /* 빛 범위를 줄임 */
-  /* 가장자리에서 빠르게 사라지는 그라데이션 */
-  background: radial-gradient(
-    ellipse at right,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 40%,
-    rgba(255, 220, 0, 0) 60%
-  );
-  animation: subtleGlowBothRight 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 미묘한 빛 애니메이션 효과 */
-@keyframes subtleGlowLeft {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowRight {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowBothLeft {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-@keyframes subtleGlowBothRight {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-/* 빛 효과를 화면 전체 높이에 균일하게 분포시키는 수정 */
-
-/* 빛 컨테이너 유지 */
-.light-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* 왼쪽에서 오는 빛 효과 - 전체 높이 균일하게 */
-.light-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 20%;
-  /* 타원형이 아닌 선형 그라데이션으로 변경하여 세로로 균일하게 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  animation: subtleGlowLeft 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 오른쪽에서 오는 빛 효과 - 전체 높이 균일하게 */
-.light-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 20%;
-  /* 타원형이 아닌 선형 그라데이션으로 변경하여 세로로 균일하게 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  animation: subtleGlowRight 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 양쪽에서 모두 빛이 새는 효과 - 전체 높이 균일하게 */
-.light-both-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 15%;
-  /* 타원형이 아닌 선형 그라데이션으로 변경하여 세로로 균일하게 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  animation: subtleGlowBothLeft 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-.light-both-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 15%;
-  /* 타원형이 아닌 선형 그라데이션으로 변경하여 세로로 균일하게 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  animation: subtleGlowBothRight 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 미묘한 빛 애니메이션 효과 */
-@keyframes subtleGlowLeft {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowRight {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowBothLeft {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-@keyframes subtleGlowBothRight {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-/* 빛 효과 및 텍스트 스타일 전체 개선 */
-
-/* 빛 컨테이너 유지 */
-.light-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* 왼쪽에서 오는 빛 효과 - 완전한 화면 높이 */
-.light-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh; /* 뷰포트 높이로 변경 */
-  width: 20%;
-  /* 선형 그라데이션과 추가 박스 섀도우로 전체 영역 커버 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  /* 추가 빛 효과를 위한 박스 섀도우 */
-  box-shadow: 0 0 50px 10px rgba(255, 220, 0, 0.15);
-  animation: subtleGlowLeft 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 오른쪽에서 오는 빛 효과 - 완전한 화면 높이 */
-.light-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100vh; /* 뷰포트 높이로 변경 */
-  width: 20%;
-  /* 선형 그라데이션과 추가 박스 섀도우로 전체 영역 커버 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  /* 추가 빛 효과를 위한 박스 섀도우 */
-  box-shadow: 0 0 50px 10px rgba(255, 220, 0, 0.15);
-  animation: subtleGlowRight 2s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 양쪽에서 모두 빛이 새는 효과 - 완전한 화면 높이 */
-.light-both-left {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh; /* 뷰포트 높이로 변경 */
-  width: 15%;
-  /* 선형 그라데이션과 추가 박스 섀도우로 전체 영역 커버 */
-  background: linear-gradient(
-    to right,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  /* 추가 빛 효과를 위한 박스 섀도우 */
-  box-shadow: 0 0 50px 10px rgba(255, 220, 0, 0.15);
-  animation: subtleGlowBothLeft 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-.light-both-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100vh; /* 뷰포트 높이로 변경 */
-  width: 15%;
-  /* 선형 그라데이션과 추가 박스 섀도우로 전체 영역 커버 */
-  background: linear-gradient(
-    to left,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
-    rgba(255, 220, 0, 0) 100%
-  );
-  /* 추가 빛 효과를 위한 박스 섀도우 */
-  box-shadow: 0 0 50px 10px rgba(255, 220, 0, 0.15);
-  animation: subtleGlowBothRight 2.5s infinite alternate ease-in-out;
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-/* 미묘한 빛 애니메이션 효과 */
-@keyframes subtleGlowLeft {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowRight {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes subtleGlowBothLeft {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-@keyframes subtleGlowBothRight {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-/* 텍스트 스타일 개선 - 더 강한 입체감 */
-.winner-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  /* 배경 완전 제거 */
-  background-color: transparent !important;
-  /* 패딩 제거 */
-  padding: 0 !important;
-}
-
-.winner-name-large {
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  color: #000000;
-  /* 더 강한 입체적인 텍스트 효과 */
-  text-shadow: 0px 2px 0px #ffffff, 0px -1px 0px rgba(0, 0, 0, 0.3),
-    1px 1px 2px rgba(255, 255, 255, 0.7), -1px -1px 2px rgba(0, 0, 0, 0.2);
-  letter-spacing: 1px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.chill-text-large {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #000000;
-  /* 더 강한 입체적인 텍스트 효과 */
-  text-shadow: 0px 2px 0px #ffffff, 0px -1px 0px rgba(0, 0, 0, 0.3),
-    1px 1px 2px rgba(255, 255, 255, 0.7), -1px -1px 2px rgba(0, 0, 0, 0.2);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 완전히 새로운 접근법의 빛 효과 - 전체 화면 커버 */
-
-/* 빛 컨테이너 */
-.light-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* 왼쪽 빛 효과 - fixed 포지션으로 뷰포트에 고정 */
-.light-left {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 20%;
-  /* 배경색상 + 그라데이션 마스크 */
-  background-color: rgba(255, 220, 0, 0.3);
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.4),
-    rgba(0, 0, 0, 0)
-  );
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
-  /* 블러 효과 추가 */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 1;
-  animation: pulseLeftNew 2s infinite alternate ease-in-out;
-}
-
-/* 오른쪽 빛 효과 - fixed 포지션으로 뷰포트에 고정 */
-.light-right {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 20%;
-  /* 배경색상 + 그라데이션 마스크 */
-  background-color: rgba(255, 220, 0, 0.3);
-  -webkit-mask-image: linear-gradient(
-    to left,
-    rgba(0, 0, 0, 0.4),
-    rgba(0, 0, 0, 0)
-  );
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
-  /* 블러 효과 추가 */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 1;
-  animation: pulseRightNew 2s infinite alternate ease-in-out;
-}
-
-/* 양쪽 빛 효과 - fixed 포지션으로 뷰포트에 고정 */
-.light-both-left {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 15%;
-  /* 배경색상 + 그라데이션 마스크 */
-  background-color: rgba(255, 220, 0, 0.25);
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.35),
-    rgba(0, 0, 0, 0)
-  );
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
-  /* 블러 효과 추가 */
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  z-index: 1;
-  animation: pulseBothLeftNew 2.5s infinite alternate ease-in-out;
-}
-
-.light-both-right {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 15%;
-  /* 배경색상 + 그라데이션 마스크 */
-  background-color: rgba(255, 220, 0, 0.25);
-  -webkit-mask-image: linear-gradient(
-    to left,
-    rgba(0, 0, 0, 0.35),
-    rgba(0, 0, 0, 0)
-  );
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
-  /* 블러 효과 추가 */
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  z-index: 1;
-  animation: pulseBothRightNew 2.5s infinite alternate ease-in-out;
-}
-
-/* 새로운 애니메이션 */
-@keyframes pulseLeftNew {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes pulseRightNew {
-  from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
-    opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes pulseBothLeftNew {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-@keyframes pulseBothRightNew {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-/* 입체감 있는 텍스트 스타일 */
-.winner-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  /* 배경색 제거 */
-  background-color: transparent !important;
-  padding: 0 !important;
-}
-
-.winner-name-large {
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  color: #000000;
-  /* 더 강력한 3D 텍스트 효과 */
-  text-shadow: 0px 2px 0px #ffffff, 0px 1px 0px #ffffff,
-    0px -1px 0px rgba(0, 0, 0, 0.3), 0px -2px 1px rgba(0, 0, 0, 0.2),
-    1px 2px 2px rgba(255, 255, 255, 0.8), -1px -1px 1px rgba(0, 0, 0, 0.2);
-  letter-spacing: 1px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.chill-text-large {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #000000;
-  /* 더 강력한 3D 텍스트 효과 */
-  text-shadow: 0px 2px 0px #ffffff, 0px 1px 0px #ffffff,
-    0px -1px 0px rgba(0, 0, 0, 0.3), 0px -2px 1px rgba(0, 0, 0, 0.2),
-    1px 2px 2px rgba(255, 255, 255, 0.8), -1px -1px 1px rgba(0, 0, 0, 0.2);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }

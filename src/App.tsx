@@ -1026,7 +1026,7 @@ export default function App(): JSX.Element {
         <div className="game-screen">
           <div className="player-indicator">{playerNumber}번</div>
 
-          {/* 빛 방향 효과 */}
+          {/* 빛 방향 효과 추가 */}
           <div className="light-container">
             {getLightDirection() === "left" && (
               <div className="light-left"></div>
@@ -1034,7 +1034,7 @@ export default function App(): JSX.Element {
             {getLightDirection() === "right" && (
               <div className="light-right"></div>
             )}
-            {/* 빛이 양쪽으로 새는 효과 */}
+            {/* 빛이 양쪽으로 새는 효과 추가 */}
             {getLightDirection() === "both" && (
               <>
                 <div className="light-both-left"></div>
