@@ -1135,14 +1135,30 @@ export default function App(): JSX.Element {
           <div className="button-container">
             {!isGameActive ? (
               isAdmin ? (
-                <button
-                  className="game-button"
-                  onClick={startGame}
-                  style={{ backgroundColor: "#28a745" }}
-                >
-                  <span className="tap-text">Start</span>
-                </button>
+                // 게임이 비활성화 상태이고, 방장인 경우
+                players.length > 0 && clickOrder >= players.length ? (
+                  // 모든 플레이어가 클릭했을 때 Next 버튼 표시
+                  <button
+                    className="game-button next-round-button"
+                    onClick={nextRound}
+                    style={{ backgroundColor: "#28a745" }}
+                  >
+                    <span className="tap-text">
+                      {currentRound < 3 ? "Next" : "Result"}
+                    </span>
+                  </button>
+                ) : (
+                  // 시작 버튼
+                  <button
+                    className="game-button"
+                    onClick={startGame}
+                    style={{ backgroundColor: "#28a745" }}
+                  >
+                    <span className="tap-text">Start</span>
+                  </button>
+                )
               ) : (
+                // 게임이 비활성화 상태이고, 방장이 아닌 경우
                 <button
                   className="game-button"
                   disabled={true}
@@ -1154,24 +1170,17 @@ export default function App(): JSX.Element {
                 </button>
               )
             ) : (
+              // 게임이 활성화 상태인 경우, Freshhh 버튼
               <button
                 className="game-button"
                 style={{ backgroundColor: buttonColor }}
                 onClick={handleButtonClick}
                 disabled={!isGameActive}
               >
-                {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
                 <span className="tap-text">Freshhh</span>
               </button>
             )}
           </div>
-
-          {/* 방장에게만 다음 버튼 표시 (게임 비활성화 상태일 때) */}
-          {!isGameActive && isAdmin && (
-            <button onClick={nextRound} className="next-button">
-              {currentRound < 3 ? "NEXT" : "결과"}
-            </button>
-          )}
 
           <button onClick={leaveSession} className="back-button">
             ×

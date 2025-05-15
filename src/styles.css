@@ -861,3 +861,17 @@ h1 {
   font-size: 20px;
   font-weight: 600;
 }
+/* Next 라운드 버튼 스타일 */
+.next-round-button {
+  background-color: #28a745 !important;
+  transition: all 0.3s ease;
+}
+
+.next-round-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(40, 167, 69, 0.7);
+}
+
+.next-round-button:active {
+  transform: scale(0.95);
+}
