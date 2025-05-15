@@ -607,88 +607,82 @@ export default function App(): JSX.Element {
   const handleButtonClick = () => {
     // 이미 게임이 비활성화되었거나 세션이 없는 경우 무시
     if (!isGameActive || !sessionId || !playerId) return;
-    
+
     console.log("Freshhh 버튼 클릭됨!");
-  
+
     // 이미 점수를 받았으면 무시
     if (currentScore !== null) {
       console.log("이미 점수가 있어 클릭 무시:", currentScore);
       return;
     }
-  
+
     // 클릭 효과 생성
     const buttonElement = document.querySelector(".game-button");
     if (buttonElement) {
       const ripple = document.createElement("span");
       ripple.classList.add("ripple-effect");
       buttonElement.appendChild(ripple);
-  
+
       // 애니메이션 후 요소 제거
       setTimeout(() => {
         ripple.remove();
       }, 1000);
     }
-  
+
     // 타이머 정지
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-  
-    // 로컬 상태 업데이트 
+
+    // 로컬 상태 업데이트
     setIsGameActive(false);
-    
+
     // 먼저 내 로컬 clickOrder 증가
     const newClickOrder = clickOrder + 1;
     setClickOrder(newClickOrder);
-    
+
     // DB 업데이트는 별도로 진행
     updateGameState({
       clickOrder: newClickOrder,
       isGameActive: false, // 한 명이 클릭하면 게임 종료
     });
-  
+
     // 참가자 수에 따라 점수 계산 로직 수정
     let points: number;
     const totalPlayers = players.length;
-  
+
     // 점수 계산 로직
     if (totalPlayers === 2) {
       points = newClickOrder === 1 ? -2 : 2; // 첫번째 클릭: -2, 두번째 클릭: +2
-    }
-    else if (totalPlayers % 2 === 1) {
+    } else if (totalPlayers % 2 === 1) {
       // 홀수 인원 - 중간값을 기준으로 계산
       const middleIndex = Math.floor(totalPlayers / 2);
-      
+
       if (newClickOrder - 1 < middleIndex) {
         points = -(middleIndex - (newClickOrder - 1)); // 마이너스 점수
       } else if (newClickOrder - 1 === middleIndex) {
         points = 0; // 중간값은 0점
       } else {
-        points = (newClickOrder - 1) - middleIndex; // 플러스 점수
+        points = newClickOrder - 1 - middleIndex; // 플러스 점수
       }
-    } 
-    else {
+    } else {
       // 짝수 인원
       const middleIndex = totalPlayers / 2 - 1;
-      
+
       if (newClickOrder - 1 <= middleIndex) {
         points = -(middleIndex - (newClickOrder - 1) + 1);
       } else {
-        points = (newClickOrder - 1) - middleIndex;
+        points = newClickOrder - 1 - middleIndex;
       }
     }
-  
-    console.log(`점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`);
-    
+
+    console.log(
+      `점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`
+    );
+
     // 점수 추가
     addScore(points);
-  };
-    // 타이머 정지
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
   };
 
   // 다음 라운드로 진행 함수
