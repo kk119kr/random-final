@@ -529,13 +529,20 @@ export default function App(): JSX.Element {
   // 눈치 게임 타이머 시작
 
   const startTimingGameTimer = () => {
-    // null 체크 후 clearTimeout 호출
+    // 기존 타이머 초기화 확실히 하기
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
     console.log("타이머 시작");
+
+    // 버튼 요소 직접 찾아서 초기 색상 설정 (즉각적인 변화 위함)
+    const buttonElement = document.querySelector(".game-button");
+    if (buttonElement) {
+      buttonElement.style.backgroundColor = newColor;
+    }
+
     const startTime = Date.now();
 
     const updateTimer = () => {
@@ -554,6 +561,12 @@ export default function App(): JSX.Element {
         )}%, 경과 시간: ${elapsedTime}ms`
       );
 
+      // 버튼 스타일 직접 설정 (즉각적인 변화 위함)
+      if (buttonElement) {
+        buttonElement.style.backgroundColor = newColor;
+      }
+
+      // React 상태 업데이트
       setButtonColor(newColor);
 
       // 관리자인 경우 색상 상태 업데이트
@@ -596,8 +609,8 @@ export default function App(): JSX.Element {
       timerRef.current = window.setTimeout(updateTimer, 50);
     };
 
-    // 첫 번째 업데이트 시작
-    updateTimer();
+    // 첫 번째 업데이트 시작 - setTimeout으로 감싸 초기 렌더링 이후 실행되도록
+    setTimeout(updateTimer, 50);
   };
 
   // 버튼 클릭 처리 함수
@@ -716,7 +729,7 @@ export default function App(): JSX.Element {
       // 약간의 지연 후 타이머 시작 (상태 업데이트 완료 후)
       setTimeout(() => {
         startTimingGameTimer();
-      }, 200);
+      }, 200); // 200ms 지연
     } else {
       // 게임 종료, 결과 화면으로
       console.log("모든 라운드 완료, 결과 화면으로 이동");
@@ -1162,8 +1175,11 @@ export default function App(): JSX.Element {
                   // 시작 버튼
                   <button
                     className="game-button"
-                    onClick={startGame}
-                    style={{ backgroundColor: "#28a745" }}
+                    style={{
+                      backgroundColor: buttonColor,
+                      transition: "background-color 0.05s linear", // 더 빠른 전환
+                    }}
+                    onClick={handleButtonClick}
                   >
                     <span className="tap-text">Start</span>
                   </button>
@@ -1184,7 +1200,10 @@ export default function App(): JSX.Element {
               // 게임이 활성화 상태인 경우, Freshhh 버튼
               <button
                 className="game-button"
-                style={{ backgroundColor: buttonColor }}
+                style={{
+                  backgroundColor: buttonColor,
+                  transition: "background-color 0.05s linear", // 더 빠른 전환
+                }}
                 onClick={handleButtonClick}
                 disabled={!isGameActive}
               >
