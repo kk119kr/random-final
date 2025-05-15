@@ -327,20 +327,20 @@ h1 {
   width: 240px;
   height: 240px;
   border-radius: 50%;
-  background-color: #007bff;
+  background-color: #007bff; /* 초기 파란색 */
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 24px rgba(0, 123, 255, 0.3);
+  transition: background-color 0.1s ease; /* 색상 변화를 더 부드럽게 */
+  box-shadow: 0 0 30px rgba(0, 123, 255, 0.6); /* 그림자 강화 */
   position: relative;
   overflow: hidden; /* 버튼 바깥으로 넘치는 부분 숨김 */
 }
 
 .game-button:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .game-button:disabled {
@@ -351,63 +351,41 @@ h1 {
 /* 버튼 내 "Freshhh" 텍스트 */
 .tap-text {
   color: white;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 40px; /* 더 큰 크기 */
+  font-weight: 800; /* 더 굵게 */
   letter-spacing: 2px;
-  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.4); /* 그림자 강화 */
   text-transform: uppercase;
-}
-
-/* 클릭 효과 */
-.ripple-effect {
-  position: absolute;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.4); /* 흰색 반투명 */
-  width: 40px;
-  height: 40px;
-  transform: translate(-50%, -50%);
-  left: 50%;
-  top: 50%;
-  opacity: 1;
-  animation: ripple 1s linear forwards;
-  pointer-events: none; /* 클릭 이벤트 방해 방지 */
-}
-
-@keyframes ripple {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0.5;
-  }
-  100% {
-    width: 500px;
-    height: 500px;
-    opacity: 0;
-  }
-}
-
-/* 다음 버튼 - 방장만 보이는 버튼 */
-.next-button {
-  position: absolute;
-  bottom: 60px;
-  background-color: #1c1c1e;
-  border: none;
-  color: white;
-  padding: 14px 30px;
-  border-radius: 12px;
-  font-size: 17px;
-  font-weight: 500;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
+/* 다음 버튼 강화 */
+.next-button {
+  position: absolute;
+  bottom: 60px;
+  background-color: #2c2c30;
+  border: 2px solid #444; /* 테두리 추가 */
+  color: white;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-size: 20px; /* 텍스트 크게 */
+  font-weight: 700; /* 더 굵게 */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* 그림자 강화 */
+  letter-spacing: 2px; /* 글자 간격 조정 */
+  text-transform: uppercase; /* 대문자로 변환 */
+}
+
 .next-button:hover {
-  background-color: #2c2c2e;
-  transform: translateY(-2px);
+  background-color: #3c3c40;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .next-button:active {
   transform: translateY(1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* 점수 버블 */

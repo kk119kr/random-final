@@ -482,8 +482,14 @@ export default function App(): JSX.Element {
 
   // 눈치 게임 시작 함수
   const startGame = () => {
-    if (!sessionId || !isAdmin) return;
+    if (!sessionId || !isAdmin) {
+      console.error("게임 시작 실패: 권한 없음");
+      return;
+    }
 
+    console.log("눈치 게임 시작"); // 디버깅 로그
+
+    // 게임 상태 업데이트
     updateGameState({
       mode: "timing",
       isGameActive: true,
@@ -513,8 +519,10 @@ export default function App(): JSX.Element {
   const startTimingGameTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
+    console.log("타이머 시작"); // 디버깅 로그
     const startTime = Date.now();
 
     timerRef.current = window.setInterval(() => {
@@ -527,6 +535,11 @@ export default function App(): JSX.Element {
       const blue = Math.floor(255 * (1 - progress));
 
       const newColor = `rgb(${red}, ${green}, ${blue})`;
+      // 디버깅을 위해 로그 추가
+      console.log(
+        `색상 변경: ${newColor}, 진행도: ${Math.round(progress * 100)}%`
+      );
+
       setButtonColor(newColor);
 
       // 관리자인 경우 색상 상태 업데이트
@@ -538,6 +551,7 @@ export default function App(): JSX.Element {
 
       // 4초 후 자동 폭발
       if (elapsedTime >= 4000) {
+        console.log("타이머 종료 - 폭발!");
         clearInterval(timerRef.current!);
         timerRef.current = null;
 
@@ -559,7 +573,7 @@ export default function App(): JSX.Element {
         // 점수 추가 (폭발 = -5점)
         addScore(-5);
       }
-    }, 50); // 더 부드러운 색상 변화를 위해 업데이트 간격 감소
+    }, 50);
   };
 
   // 버튼 클릭 처리 함수
@@ -640,12 +654,19 @@ export default function App(): JSX.Element {
 
   // 다음 라운드로 진행 함수
   const nextRound = () => {
-    if (!sessionId || !isAdmin) return;
+    if (!sessionId || !isAdmin) {
+      console.error("다음 라운드 진행 실패: 권한 없음");
+      return;
+    }
 
     const nextRoundNumber = currentRound < 3 ? currentRound + 1 : 1;
+    console.log(`다음 라운드 진행: ${currentRound} -> ${nextRoundNumber}`); // 디버깅 로그
 
     if (currentRound < 3) {
-      // 다음 라운드로
+      // 다음 라운드로 진행
+      console.log("다음 라운드로 진행");
+
+      // 상태 업데이트 - Firebase
       updateGameState({
         round: nextRoundNumber,
         isGameActive: true,
@@ -653,10 +674,22 @@ export default function App(): JSX.Element {
         clickOrder: 0,
       });
 
+      // 로컬 상태 업데이트
       setCurrentRound(nextRoundNumber);
-      startGame();
+      setIsGameActive(true);
+      setCurrentScore(null);
+      setButtonColor("#007bff");
+      setClickOrder(0);
+
+      // 타이머 시작
+      console.log("타이머 시작 호출");
+      // 약간의 지연 후 타이머 시작 (상태 업데이트 완료 후)
+      setTimeout(() => {
+        startTimingGameTimer();
+      }, 200);
     } else {
       // 게임 종료, 결과 화면으로
+      console.log("모든 라운드 완료, 결과 화면으로 이동");
       updateGameState({
         mode: "result",
         round: 1,
@@ -1067,13 +1100,15 @@ export default function App(): JSX.Element {
               onClick={handleButtonClick}
               disabled={!isGameActive}
             >
-              <span className="tap-text">{isGameActive ? "Freshhh" : ""}</span>
+              {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
+              {isGameActive && <span className="tap-text">Freshhh</span>}
             </button>
           </div>
 
-          {!isGameActive && currentScore !== null && isAdmin && (
+          {/* 방장에게만 다음 버튼 표시 (게임 비활성화 상태일 때) */}
+          {!isGameActive && isAdmin && (
             <button onClick={nextRound} className="next-button">
-              {currentRound < 3 ? "next" : "결과"}
+              {currentRound < 3 ? "NEXT" : "결과"}
             </button>
           )}
 
