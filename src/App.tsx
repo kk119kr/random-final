@@ -92,14 +92,6 @@ interface GameState {
   lastUpdateTime: number;
 }
 
-// 플레이어 점수 타입 (랭킹용)
-interface PlayerWithScore {
-  id: string;
-  name: string;
-  number: number;
-  totalScore: number;
-}
-
 export default function App(): JSX.Element {
   // 게임 상태 관리
   const [gameMode, setGameMode] = useState<GameMode>("home");
@@ -131,10 +123,6 @@ export default function App(): JSX.Element {
   // 타이머 및 애니메이션 ref
   const timerRef = useRef<number | null>(null);
   const lightTimerRef = useRef<number | null>(null);
-  
-  const [playerRankings, setPlayerRankings] = useState<PlayerWithScore[]>([]);
-
-
 
   // 세션 생성 함수
   const createSession = () => {
@@ -315,18 +303,20 @@ export default function App(): JSX.Element {
     // 방장 여부 업데이트
     setIsAdmin(playerId === adminId);
 
-     // 게임 모드 업데이트
-  if (gameState.mode !== "lobby") {
-    setGameMode(gameState.mode);
-  }
+    // 게임 모드 업데이트
+    if (gameState.mode !== "lobby") {
+      setGameMode(gameState.mode);
+    }
 
-  // 눈치 게임 상태 업데이트
-  if (gameState.mode === "timing") {
-    // ... 코드 생략 ...
-  }
-  if (gameState.mode === "result") {
-    calculateRankings(gameState.timingScores);
-  }
+    // 눈치 게임 상태 업데이트
+    if (gameState.mode === "timing") {
+      setCurrentRound(gameState.round);
+      setIsGameActive(gameState.isGameActive);
+      setButtonColor(gameState.buttonColor);
+      setClickOrder(gameState.clickOrder);
+      if (gameState.mode === "result") {
+        calculateRankings(gameState.timingScores);
+      }
 
       // 내 점수 가져오기
       if (
@@ -901,7 +891,7 @@ export default function App(): JSX.Element {
   // 게임 선택
   const selectGame = (mode: GameMode) => {
     if (!sessionId || !isAdmin) return;
-  
+
     if (mode === "timing") {
       updateGameState({
         mode: "timing",
@@ -914,63 +904,30 @@ export default function App(): JSX.Element {
     }
     // ...
   };
-  
+
   // 랭킹 계산 함수 추가
-  const calculateRankings = (timingScores: { [playerId: string]: PlayerScore[] }) => {
-    const rankings: PlayerWithScore[] = players.map(player => {
+  const calculateRankings = (timingScores: {
+    [playerId: string]: PlayerScore[];
+  }) => {
+    const rankings: PlayerWithScore[] = players.map((player) => {
       const playerScores = timingScores[player.id] || [];
-      const totalScore = playerScores.reduce((sum, score) => sum + score.points, 0);
-      
+      const totalScore = playerScores.reduce(
+        (sum, score) => sum + score.points,
+        0
+      );
+
       return {
         ...player,
-        totalScore
+        totalScore,
       };
     });
-    
+
     // 점수 내림차순으로 정렬
     rankings.sort((a, b) => b.totalScore - a.totalScore);
     setPlayerRankings(rankings);
   };
-  
+
   // 눈치 게임 화면에 시작 버튼 추가
-  <div className="button-container">
-    {!isGameActive && isAdmin ? (
-      <button onClick={startGame} className="start-button">
-        게임 시작
-      </button>
-    ) : (
-      <button
-        className="game-button"
-        style={{ backgroundColor: buttonColor }}
-        onClick={handleButtonClick}
-        disabled={!isGameActive}
-      >
-        {isGameActive && <span className="tap-text">Freshhh</span>}
-      </button>
-    )}
-  </div>
-  
-  // 결과 화면에 랭킹 시스템 추가
-  <div className="ranking-container">
-    <h3>전체 랭킹</h3>
-    <div className="ranking-list">
-      {playerRankings.map((player, index) => (
-        <div 
-          key={player.id} 
-          className={`ranking-item ${player.id === playerId ? "current-player" : ""}`}
-        >
-          <div className="rank-number">{index + 1}</div>
-          <div className="player-info">
-            <span className="player-name">{player.name}</span>
-            <span className="player-number">({player.number}번)</span>
-          </div>
-          <div className={`player-score ${player.totalScore > 0 ? "positive" : player.totalScore < 0 ? "negative" : "neutral"}`}>
-            {player.totalScore > 0 ? `+${player.totalScore}` : player.totalScore}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
