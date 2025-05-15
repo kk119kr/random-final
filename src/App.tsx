@@ -356,17 +356,17 @@ export default function App(): JSX.Element {
     }
   };
 
-  // 빛 방향 표시 로직 추가
+  // 빛 방향 표시 로직 개선
   const getLightDirection = (): LightDirection => {
     // gameState가 null인 경우 일찍 반환
     if (!gameState) return "none";
 
-    // 빛이 나에게 있거나 선택된 경우 - "both" 반환으로 변경
+    // 빛이 나에게 있거나 선택된 경우
     if (isLightActive || isSelected) {
-      return "both"; // 여기를 "none"에서 "both"로 변경!
+      return "both"; // 양쪽에서 빛이 나오도록
     }
 
-    // 빛이 나에게 없고 선택되지 않았을 때 방향 계산
+    // 플레이어가 1명이면 방향 없음
     if (players.length <= 1) return "none";
 
     // 빛이 있는 플레이어 찾기
@@ -377,24 +377,43 @@ export default function App(): JSX.Element {
     // 내 위치 찾기
     const myIndex = players.findIndex((player) => player.id === playerId);
 
+    // 플레이어를 찾을 수 없으면 방향 없음
     if (activePlayerIndex === -1 || myIndex === -1) return "none";
 
     // 플레이어 수
     const playerCount = players.length;
 
-    // 시계 방향으로 다음 플레이어가 나인지 확인
+    // 2명인 경우
+    if (playerCount === 2) {
+      // 빛이 나에게 없고 상대방에게 있을 경우
+      if (activePlayerIndex !== myIndex) {
+        // 0번 플레이어(왼쪽)에서 1번 플레이어(오른쪽)로 이동하는 경우 왼쪽에서 빛이 들어옴
+        if (activePlayerIndex === 0 && myIndex === 1) {
+          return "left";
+        }
+        // 1번 플레이어(오른쪽)에서 0번 플레이어(왼쪽)로 이동하는 경우 오른쪽에서 빛이 들어옴
+        else {
+          return "right";
+        }
+      }
+      return "none";
+    }
+
+    // 3명 이상일 때는 직접 인접한 플레이어만 빛 효과를 보임
+    // 시계 방향으로 다음 플레이어가 나인지 확인 (내 왼쪽에 있는 플레이어)
     const nextPlayerIndex = (activePlayerIndex + 1) % playerCount;
     if (nextPlayerIndex === myIndex) {
       return "left"; // 내가 다음 플레이어라면 왼쪽에서 빛이 올 것임
     }
 
-    // 반시계 방향으로 이전 플레이어가 나인지 확인
+    // 반시계 방향으로 이전 플레이어가 나인지 확인 (내 오른쪽에 있는 플레이어)
     const prevPlayerIndex = (activePlayerIndex - 1 + playerCount) % playerCount;
     if (prevPlayerIndex === myIndex) {
       return "right"; // 내가 이전 플레이어라면 오른쪽에서 빛이 올 것임
     }
 
-    return "none"; // 이외의 경우 방향 표시 없음
+    // 인접한 플레이어가 아니면 빛이 보이지 않음
+    return "none";
   };
 
   // 여기에 당첨자 관련 변수 추가
@@ -660,6 +679,9 @@ export default function App(): JSX.Element {
 
     let currentPlayerIndex = 0;
 
+    // 2명일 때의 방향 설정 (0→1→0→1...)
+    let twoPlayerDirection = 1; // 1은 증가(0→1), -1은 감소(1→0)
+
     // 첫 번째 플레이어부터 시작
     const currentPlayer = players[currentPlayerIndex];
     updateGameState({
@@ -672,8 +694,16 @@ export default function App(): JSX.Element {
     let slowdownStarted = false;
 
     const moveLight = () => {
-      // 다음 플레이어로 이동
-      currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
+      // 2명인 경우 0→1→0→1 식으로 번갈아가며 이동
+      if (playerCount === 2) {
+        currentPlayerIndex = twoPlayerDirection === 1 ? 1 : 0;
+        // 다음번에는 반대 방향으로 이동
+        twoPlayerDirection *= -1;
+      } else {
+        // 3명 이상인 경우 시계방향으로 순환
+        currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
+      }
+
       const nextPlayer = players[currentPlayerIndex];
 
       // 데이터베이스 업데이트

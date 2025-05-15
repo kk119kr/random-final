@@ -456,55 +456,58 @@ h1 {
   overflow: hidden;
 }
 
-/* 왼쪽 빛 효과 - 단순화된 접근법 */
+/* 왼쪽 빛 효과 - 강화된 버전 */
 .light-left {
   position: absolute;
   left: 0;
   top: 0;
   height: 100%;
-  width: 20%;
+  width: 40%; /* 너비 증가 */
   background: linear-gradient(
     to right,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
+    rgba(255, 220, 0, 0.8),
+    /* 불투명도 증가 */ rgba(255, 220, 0, 0.3) 70%,
     rgba(255, 220, 0, 0) 100%
   );
   z-index: 1;
-  animation: simpleGlowLeft 2s infinite alternate ease-in-out;
+  animation: enhancedGlowLeft 1.2s infinite alternate ease-in-out;
+  pointer-events: none; /* 클릭 이벤트가 통과하도록 */
 }
 
-/* 오른쪽 빛 효과 - 단순화된 접근법 */
+/* 오른쪽 빛 효과 - 강화된 버전 */
 .light-right {
   position: absolute;
   right: 0;
   top: 0;
   height: 100%;
-  width: 20%;
+  width: 40%; /* 너비 증가 */
   background: linear-gradient(
     to left,
-    rgba(255, 220, 0, 0.4),
-    rgba(255, 220, 0, 0.1) 60%,
+    rgba(255, 220, 0, 0.8),
+    /* 불투명도 증가 */ rgba(255, 220, 0, 0.3) 70%,
     rgba(255, 220, 0, 0) 100%
   );
   z-index: 1;
-  animation: simpleGlowRight 2s infinite alternate ease-in-out;
+  animation: enhancedGlowRight 1.2s infinite alternate ease-in-out;
+  pointer-events: none; /* 클릭 이벤트가 통과하도록 */
 }
 
-/* 양쪽 빛 효과 - 단순화된 접근법 */
+/* 양쪽 빛 효과 - 강화된 버전 */
 .light-both-left {
   position: absolute;
   left: 0;
   top: 0;
   height: 100%;
-  width: 15%;
+  width: 35%;
   background: linear-gradient(
     to right,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
+    rgba(255, 220, 0, 0.75),
+    rgba(255, 220, 0, 0.3) 70%,
     rgba(255, 220, 0, 0) 100%
   );
   z-index: 1;
-  animation: simpleGlowBothLeft 2.5s infinite alternate ease-in-out;
+  animation: enhancedGlowBothLeft 1.5s infinite alternate ease-in-out;
+  pointer-events: none; /* 클릭 이벤트가 통과하도록 */
 }
 
 .light-both-right {
@@ -512,71 +515,60 @@ h1 {
   right: 0;
   top: 0;
   height: 100%;
-  width: 15%;
+  width: 35%;
   background: linear-gradient(
     to left,
-    rgba(255, 220, 0, 0.35),
-    rgba(255, 220, 0, 0.08) 60%,
+    rgba(255, 220, 0, 0.75),
+    rgba(255, 220, 0, 0.3) 70%,
     rgba(255, 220, 0, 0) 100%
   );
   z-index: 1;
-  animation: simpleGlowBothRight 2.5s infinite alternate ease-in-out;
+  animation: enhancedGlowBothRight 1.5s infinite alternate ease-in-out;
+  pointer-events: none; /* 클릭 이벤트가 통과하도록 */
 }
 
-/* 당첨자 콘텐츠 */
-.winner-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  background-color: transparent !important;
-  padding: 0 !important;
-}
-
-/* 간단한 빛 애니메이션 */
-@keyframes simpleGlowLeft {
+/* 강화된 빛 애니메이션 */
+@keyframes enhancedGlowLeft {
   from {
-    opacity: 0.3;
-    width: 15%;
+    opacity: 0.6;
+    width: 30%;
   }
   to {
+    opacity: 0.9;
+    width: 40%;
+  }
+}
+
+@keyframes enhancedGlowRight {
+  from {
+    opacity: 0.6;
+    width: 30%;
+  }
+  to {
+    opacity: 0.9;
+    width: 40%;
+  }
+}
+
+@keyframes enhancedGlowBothLeft {
+  from {
     opacity: 0.5;
-    width: 20%;
+    width: 25%;
+  }
+  to {
+    opacity: 0.8;
+    width: 35%;
   }
 }
 
-@keyframes simpleGlowRight {
+@keyframes enhancedGlowBothRight {
   from {
-    opacity: 0.3;
-    width: 15%;
-  }
-  to {
     opacity: 0.5;
-    width: 20%;
-  }
-}
-
-@keyframes simpleGlowBothLeft {
-  from {
-    opacity: 0.25;
-    width: 12%;
+    width: 25%;
   }
   to {
-    opacity: 0.4;
-    width: 18%;
-  }
-}
-
-@keyframes simpleGlowBothRight {
-  from {
-    opacity: 0.25;
-    width: 12%;
-  }
-  to {
-    opacity: 0.4;
-    width: 18%;
+    opacity: 0.8;
+    width: 35%;
   }
 }
 
