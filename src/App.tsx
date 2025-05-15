@@ -361,41 +361,44 @@ export default function App(): JSX.Element {
     // gameState가 null인 경우 일찍 반환
     if (!gameState) return "none";
 
-    // 빛이 나에게 있거나 선택된 경우
-    if (isLightActive || isSelected) {
-      return "both"; // 양쪽에서 빛이 나오도록
-    }
-
     // 플레이어가 1명이면 방향 없음
     if (players.length <= 1) return "none";
+
+    // 플레이어 수
+    const playerCount = players.length;
+
+    // 내 위치 찾기
+    const myIndex = players.findIndex((player) => player.id === playerId);
+    if (myIndex === -1) return "none";
 
     // 빛이 있는 플레이어 찾기
     const activePlayerIndex = players.findIndex(
       (player) => player.id === gameState.activeLightPlayerId
     );
+    if (activePlayerIndex === -1) return "none";
 
-    // 내 위치 찾기
-    const myIndex = players.findIndex((player) => player.id === playerId);
+    // 빛이 나에게 있는 경우 (내가 활성 플레이어) - 버튼에만 빛이 나오므로 방향 없음
+    if (activePlayerIndex === myIndex) {
+      return "none"; // 버튼에서만 빛이 나오고 양쪽에서 빛이 새지 않음
+    }
 
-    // 플레이어를 찾을 수 없으면 방향 없음
-    if (activePlayerIndex === -1 || myIndex === -1) return "none";
+    // 내가 선택된 플레이어인 경우(당첨자) - 버튼에만 빛이 나오므로 방향 없음
+    if (isSelected) {
+      return "none"; // 버튼에서만 빛이 나오고 양쪽에서 빛이 새지 않음
+    }
 
-    // 플레이어 수
-    const playerCount = players.length;
-
-    // 2명인 경우
+    // 2명일 때는 고정된 방향 설정
     if (playerCount === 2) {
-      // 빛이 나에게 없고 상대방에게 있을 경우
-      if (activePlayerIndex !== myIndex) {
-        // 0번 플레이어(왼쪽)에서 1번 플레이어(오른쪽)로 이동하는 경우 왼쪽에서 빛이 들어옴
-        if (activePlayerIndex === 0 && myIndex === 1) {
-          return "left";
-        }
-        // 1번 플레이어(오른쪽)에서 0번 플레이어(왼쪽)로 이동하는 경우 오른쪽에서 빛이 들어옴
-        else {
-          return "right";
-        }
+      // 방향 수정: 2명일 때 1번 플레이어는 항상 오른쪽에서만 빛을 받음
+      if (myIndex === 0 && activePlayerIndex === 1) {
+        return "right";
       }
+
+      // 방향 수정: 2명일 때 2번 플레이어는 항상 왼쪽에서만 빛을 받음
+      if (myIndex === 1 && activePlayerIndex === 0) {
+        return "left";
+      }
+
       return "none";
     }
 
@@ -578,28 +581,44 @@ export default function App(): JSX.Element {
     setIsGameActive(false);
     setClickOrder((prev) => prev + 1);
 
-    // 클릭 순서에 따라 점수 부여
+    // 참가자 수에 따라 점수 계산 로직 변경
     let points: number;
+    const totalPlayers = players.length;
 
-    switch (clickOrder) {
-      case 0:
-        points = -3;
-        break; // 첫 번째 클릭
-      case 1:
-        points = -2;
-        break; // 두 번째 클릭
-      case 2:
-        points = -1;
-        break; // 세 번째 클릭
-      case 3:
-        points = 1;
-        break; // 네 번째 클릭
-      case 4:
-        points = 2;
-        break; // 다섯 번째 클릭
-      default:
-        points = 3;
-        break; // 여섯 번째 이상 클릭
+    // 2명인 경우: 첫 번째 클릭은 -2점, 두 번째 클릭은 +2점
+    if (totalPlayers === 2) {
+      if (clickOrder === 0) {
+        points = -2; // 첫 번째 클릭한 사람은 마이너스
+      } else {
+        points = 2; // 두 번째 클릭한 사람은 플러스
+      }
+    }
+    // 홀수 인원인 경우: 중간에 클릭한 사람은 0점
+    else if (totalPlayers % 2 === 1) {
+      const middleIndex = Math.floor(totalPlayers / 2);
+
+      if (clickOrder < middleIndex) {
+        // 중간보다 먼저 클릭한 사람들은 마이너스 점수
+        points = -(middleIndex - clickOrder); // 클릭 순서가 빠를수록 더 큰 마이너스
+      } else if (clickOrder === middleIndex) {
+        // 중간에 클릭한 사람은 0점
+        points = 0;
+      } else {
+        // 중간보다 늦게 클릭한 사람들은 플러스 점수
+        points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
+      }
+    }
+    // 짝수 인원인 경우: 일반적인 점수 계산
+    else {
+      const middleIndex = totalPlayers / 2 - 1;
+
+      if (clickOrder <= middleIndex) {
+        // 중간 이전에 클릭한 사람들은 마이너스 점수
+        points = -(middleIndex - clickOrder + 1); // 클릭 순서가 빠를수록 더 큰 마이너스
+      } else {
+        // 중간 이후에 클릭한 사람들은 플러스 점수
+        points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
+      }
     }
 
     // 점수 추가
@@ -679,7 +698,7 @@ export default function App(): JSX.Element {
 
     let currentPlayerIndex = 0;
 
-    // 2명일 때의 방향 설정 (0→1→0→1...)
+    // 2명일 때의 방향 설정 (순차적으로 0→1→0→1...)
     let twoPlayerDirection = 1; // 1은 증가(0→1), -1은 감소(1→0)
 
     // 첫 번째 플레이어부터 시작
@@ -696,6 +715,7 @@ export default function App(): JSX.Element {
     const moveLight = () => {
       // 2명인 경우 0→1→0→1 식으로 번갈아가며 이동
       if (playerCount === 2) {
+        // 다음 플레이어 인덱스 계산
         currentPlayerIndex = twoPlayerDirection === 1 ? 1 : 0;
         // 다음번에는 반대 방향으로 이동
         twoPlayerDirection *= -1;
@@ -1021,7 +1041,11 @@ export default function App(): JSX.Element {
             {currentScore !== null && (
               <div
                 className={`score-bubble ${
-                  currentScore > 0 ? "positive" : "negative"
+                  currentScore > 0
+                    ? "positive"
+                    : currentScore < 0
+                    ? "negative"
+                    : "neutral"
                 }`}
               >
                 {currentScore > 0 ? `+${currentScore}` : currentScore}
@@ -1042,7 +1066,7 @@ export default function App(): JSX.Element {
 
           {!isGameActive && currentScore !== null && isAdmin && (
             <button onClick={nextRound} className="next-button">
-              {currentRound < 3 ? "다음" : "결과"}
+              {currentRound < 3 ? "Freshhh" : "결과"}
             </button>
           )}
 
@@ -1057,7 +1081,7 @@ export default function App(): JSX.Element {
         <div className="game-screen">
           <div className="player-indicator">{playerNumber}번</div>
 
-          {/* 빛 방향 효과 추가 */}
+          {/* 빛 방향 효과 추가 - both 효과 제거 */}
           <div className="light-container">
             {getLightDirection() === "left" && (
               <div className="light-left"></div>
@@ -1065,18 +1089,12 @@ export default function App(): JSX.Element {
             {getLightDirection() === "right" && (
               <div className="light-right"></div>
             )}
-            {/* 빛이 양쪽으로 새는 효과 추가 */}
-            {getLightDirection() === "both" && (
-              <>
-                <div className="light-both-left"></div>
-                <div className="light-both-right"></div>
-              </>
-            )}
+            {/* 양쪽 빛 효과 제거 */}
 
             <div className="button-container">
               <button
                 className={`light-button ${isLightActive ? "active" : ""} ${
-                  isSelected || showWinnerPopup ? "selected" : ""
+                  isSelected ? "selected" : ""
                 }`}
                 onClick={
                   isAdmin && !isLightGameActive ? startLightGame : undefined
@@ -1114,15 +1132,19 @@ export default function App(): JSX.Element {
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">
-          <h2>결과</h2>
+          <h2>게임 결과</h2>
 
-          <div className="total-score">
-            총점:{" "}
-            <span
-              className={calculateTotalScore() >= 0 ? "positive" : "negative"}
+          <div className="total-score-container">
+            <div className="total-score-label">총점</div>
+            <div
+              className={`total-score ${
+                calculateTotalScore() >= 0 ? "positive" : "negative"
+              }`}
             >
-              {calculateTotalScore()}
-            </span>
+              {calculateTotalScore() >= 0
+                ? `+${calculateTotalScore()}`
+                : calculateTotalScore()}
+            </div>
           </div>
 
           <div className="score-list">
@@ -1131,10 +1153,14 @@ export default function App(): JSX.Element {
                 <span className="round-label">라운드 {score.round}</span>
                 <span
                   className={`score-value ${
-                    score.points >= 0 ? "positive" : "negative"
+                    score.points > 0
+                      ? "positive"
+                      : score.points < 0
+                      ? "negative"
+                      : "neutral"
                   }`}
                 >
-                  {score.points >= 0 ? `+${score.points}` : score.points}
+                  {score.points > 0 ? `+${score.points}` : score.points}
                 </span>
               </div>
             ))}
