@@ -121,8 +121,8 @@ export default function App(): JSX.Element {
   const [joinUrl, setJoinUrl] = useState<string>("");
 
   // 타이머 및 애니메이션 ref
-  const timerRef = useRef<number | null>(null);
-  const lightTimerRef = useRef<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const lightTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 세션 생성 함수
   const createSession = () => {
@@ -757,7 +757,8 @@ export default function App(): JSX.Element {
     if (!sessionId || !isAdmin || players.length === 0) return;
 
     if (lightTimerRef.current) {
-      clearInterval(lightTimerRef.current);
+      clearTimeout(lightTimerRef.current);
+      lightTimerRef.current = null;
     }
 
     // 플레이어 수 확인
@@ -824,8 +825,10 @@ export default function App(): JSX.Element {
       }
 
       // 타이머 재설정
-      clearTimeout(lightTimerRef.current!);
-      lightTimerRef.current = null;
+      if (lightTimerRef.current) {
+        clearTimeout(lightTimerRef.current);
+        lightTimerRef.current = null;
+      }
 
       // 게임이 완전히 끝났는지 확인
       if (cycleCount >= maxCycles) {
@@ -892,12 +895,12 @@ export default function App(): JSX.Element {
 
     // 타이머 정리
     if (timerRef.current) {
-      clearInterval(timerRef.current);
+      clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
     if (lightTimerRef.current) {
-      clearInterval(lightTimerRef.current);
+      clearTimeout(lightTimerRef.current);
       lightTimerRef.current = null;
     }
 
@@ -956,11 +959,13 @@ export default function App(): JSX.Element {
   useEffect(() => {
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
 
       if (lightTimerRef.current) {
-        clearInterval(lightTimerRef.current);
+        clearTimeout(lightTimerRef.current);
+        lightTimerRef.current = null;
       }
     };
   }, []);
