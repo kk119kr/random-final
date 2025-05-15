@@ -880,37 +880,76 @@ export default function App(): JSX.Element {
   // 게임 선택
   const selectGame = (mode: GameMode) => {
     if (!sessionId || !isAdmin) return;
-
+  
     if (mode === "timing") {
       updateGameState({
         mode: "timing",
         round: 1,
-        isGameActive: true,
+        isGameActive: false, // 시작 버튼을 표시하기 위해 게임 비활성화로 설정
         buttonColor: "#007bff",
         clickOrder: 0,
       });
-
-      setCurrentRound(1);
-      setScores([]);
-      setGameMode("timing");
-      startGame();
-    } else if (mode === "light") {
-      updateGameState({
-        mode: "light",
-        isGameActive: false, // 이 부분을 false로 변경
-        activeLightPlayerId: null,
-        selectedPlayerId: null,
-      });
-
-      setGameMode("light");
-      // startLightGame 함수 호출 제거
+      // startGame() 호출 제거
     }
+    // ...
   };
-
-  // 총점 계산 함수
-  const calculateTotalScore = (): number => {
-    return scores.reduce((total, score) => total + score.points, 0);
+  
+  // 랭킹 계산 함수 추가
+  const calculateRankings = (timingScores: { [playerId: string]: PlayerScore[] }) => {
+    const rankings: PlayerWithScore[] = players.map(player => {
+      const playerScores = timingScores[player.id] || [];
+      const totalScore = playerScores.reduce((sum, score) => sum + score.points, 0);
+      
+      return {
+        ...player,
+        totalScore
+      };
+    });
+    
+    // 점수 내림차순으로 정렬
+    rankings.sort((a, b) => b.totalScore - a.totalScore);
+    setPlayerRankings(rankings);
   };
+  
+  // 눈치 게임 화면에 시작 버튼 추가
+  <div className="button-container">
+    {!isGameActive && isAdmin ? (
+      <button onClick={startGame} className="start-button">
+        게임 시작
+      </button>
+    ) : (
+      <button
+        className="game-button"
+        style={{ backgroundColor: buttonColor }}
+        onClick={handleButtonClick}
+        disabled={!isGameActive}
+      >
+        {isGameActive && <span className="tap-text">Freshhh</span>}
+      </button>
+    )}
+  </div>
+  
+  // 결과 화면에 랭킹 시스템 추가
+  <div className="ranking-container">
+    <h3>전체 랭킹</h3>
+    <div className="ranking-list">
+      {playerRankings.map((player, index) => (
+        <div 
+          key={player.id} 
+          className={`ranking-item ${player.id === playerId ? "current-player" : ""}`}
+        >
+          <div className="rank-number">{index + 1}</div>
+          <div className="player-info">
+            <span className="player-name">{player.name}</span>
+            <span className="player-number">({player.number}번)</span>
+          </div>
+          <div className={`player-score ${player.totalScore > 0 ? "positive" : player.totalScore < 0 ? "negative" : "neutral"}`}>
+            {player.totalScore > 0 ? `+${player.totalScore}` : player.totalScore}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
