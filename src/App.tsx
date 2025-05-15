@@ -71,6 +71,13 @@ interface Player {
   name: string;
   number: number;
 }
+// 플레이어 점수 타입 (랭킹용)
+interface PlayerWithScore {
+  id: string;
+  name: string;
+  number: number;
+  totalScore: number;
+}
 
 // 게임 상태 타입
 interface GameState {
@@ -85,6 +92,14 @@ interface GameState {
   lastUpdateTime: number;
 }
 
+// 플레이어 점수 타입 (랭킹용)
+interface PlayerWithScore {
+  id: string;
+  name: string;
+  number: number;
+  totalScore: number;
+}
+
 export default function App(): JSX.Element {
   // 게임 상태 관리
   const [gameMode, setGameMode] = useState<GameMode>("home");
@@ -95,6 +110,7 @@ export default function App(): JSX.Element {
   const [scores, setScores] = useState<PlayerScore[]>([]);
   const [clickOrder, setClickOrder] = useState<number>(0);
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [playerRankings, setPlayerRankings] = useState<PlayerWithScore[]>([]);
 
   // 빛 이동 게임 상태
   const [isLightActive, setIsLightActive] = useState<boolean>(false);
@@ -115,6 +131,10 @@ export default function App(): JSX.Element {
   // 타이머 및 애니메이션 ref
   const timerRef = useRef<number | null>(null);
   const lightTimerRef = useRef<number | null>(null);
+  
+  const [playerRankings, setPlayerRankings] = useState<PlayerWithScore[]>([]);
+
+
 
   // 세션 생성 함수
   const createSession = () => {
@@ -295,17 +315,18 @@ export default function App(): JSX.Element {
     // 방장 여부 업데이트
     setIsAdmin(playerId === adminId);
 
-    // 게임 모드 업데이트
-    if (gameState.mode !== "lobby") {
-      setGameMode(gameState.mode);
-    }
+     // 게임 모드 업데이트
+  if (gameState.mode !== "lobby") {
+    setGameMode(gameState.mode);
+  }
 
-    // 눈치 게임 상태 업데이트
-    if (gameState.mode === "timing") {
-      setCurrentRound(gameState.round);
-      setIsGameActive(gameState.isGameActive);
-      setButtonColor(gameState.buttonColor);
-      setClickOrder(gameState.clickOrder);
+  // 눈치 게임 상태 업데이트
+  if (gameState.mode === "timing") {
+    // ... 코드 생략 ...
+  }
+  if (gameState.mode === "result") {
+    calculateRankings(gameState.timingScores);
+  }
 
       // 내 점수 가져오기
       if (
