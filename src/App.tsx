@@ -497,34 +497,34 @@ export default function App(): JSX.Element {
   };
 
   // 눈치 게임 시작 함수
- 
-  if (!sessionId || !isAdmin) {
-    console.error("게임 시작 실패: 권한 없음");
-    return;
-  }
+  const startGame = () => {
+    if (!sessionId || !isAdmin) {
+      console.error("게임 시작 실패: 권한 없음");
+      return;
+    }
 
-  console.log("눈치 게임 시작"); // 디버깅 로그
+    console.log("눈치 게임 시작"); // 디버깅 로그
 
-   // 게임 상태 업데이트
-  updateGameState({
-    mode: "timing",
-    isGameActive: true,
-    round: currentRound,
-    buttonColor: "#007bff",
-    clickOrder: 0,
-  });
+    // 게임 상태 업데이트
+    updateGameState({
+      mode: "timing",
+      isGameActive: true,
+      round: currentRound,
+      buttonColor: "#007bff",
+      clickOrder: 0,
+    });
 
-  // 로컬 상태 업데이트
-  setIsGameActive(true);
-  setCurrentScore(null);
-  setButtonColor("#007bff");
-  setClickOrder(0);
+    // 로컬 상태 업데이트
+    setIsGameActive(true);
+    setCurrentScore(null);
+    setButtonColor("#007bff");
+    setClickOrder(0);
 
-  console.log("타이머 시작 직전, isGameActive:", true); // 디버깅 로그 추가
+    console.log("타이머 시작 직전, isGameActive:", true); // 디버깅 로그 추가
 
-  // 타이머 시작
-  startTimingGameTimer();
-};
+    // 타이머 시작
+    startTimingGameTimer();
+  };
 
   // 눈치 게임 타이머 시작
 
@@ -533,39 +533,43 @@ export default function App(): JSX.Element {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  
+
     console.log("타이머 시작"); // 디버깅 로그
     const startTime = Date.now();
-  
+
     timerRef.current = window.setInterval(() => {
       const elapsedTime = Date.now() - startTime;
       const progress = Math.min(elapsedTime / 4000, 1); // 4초 경과 = 100%
-  
+
       // 파란색(#007bff)에서 빨간색(#dc3545)로 변화
       const red = Math.floor(0 + (220 - 0) * progress);
       const green = Math.floor(123 * (1 - progress));
       const blue = Math.floor(255 * (1 - progress));
-  
+
       const newColor = `rgb(${red}, ${green}, ${blue})`;
-      console.log(`색상 변경: ${newColor}, 진행도: ${Math.round(progress * 100)}%, 경과 시간: ${elapsedTime}ms`); // 디버깅 로그 추가
-      
+      console.log(
+        `색상 변경: ${newColor}, 진행도: ${Math.round(
+          progress * 100
+        )}%, 경과 시간: ${elapsedTime}ms`
+      ); // 디버깅 로그 추가
+
       setButtonColor(newColor);
-  
+
       // 관리자인 경우 색상 상태 업데이트
       if (isAdmin && sessionId) {
         updateGameState({
           buttonColor: newColor,
         });
       }
-  
+
       // 4초 후 자동 폭발
       if (elapsedTime >= 4000) {
         console.log("타이머 종료 - 폭발!"); // 디버깅 로그
-        
+
         // 인터벌 정리
         clearInterval(timerRef.current!);
         timerRef.current = null;
-  
+
         // 폭발 시 모든 유저에게 전달되도록 수정
         if (isAdmin && sessionId) {
           updateGameState({
@@ -575,13 +579,13 @@ export default function App(): JSX.Element {
           // 방장이 아닌 유저도 폭발 처리를 할 수 있도록 수정
           setIsGameActive(false);
         }
-  
+
         // 폭발 효과
         document.body.style.backgroundColor = "#dc3545";
         setTimeout(() => {
           document.body.style.backgroundColor = "";
         }, 300);
-  
+
         // 점수 추가 (폭발 = -5점)
         // 폭발했지만 아직 점수가 없는 경우에만 추가
         if (currentScore === null) {
