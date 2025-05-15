@@ -474,6 +474,25 @@ export default function App(): JSX.Element {
     const newScore = { round: currentRound, points };
     setScores([...scores, newScore]);
     setCurrentScore(points);
+    console.log("점수 추가:", newScore);
+    console.log("현재 점수 배열:", scores);
+    setScores((prevScores) => {
+      const existingScoreIndex = prevScores.findIndex(
+        (s) => s.round === currentRound
+      );
+
+      if (existingScoreIndex !== -1) {
+        // 이미 있으면 업데이트
+        const updatedScores = [...prevScores];
+        updatedScores[existingScoreIndex] = newScore;
+        return updatedScores;
+      } else {
+        // 없으면 추가
+        return [...prevScores, newScore];
+      }
+    });
+
+    setCurrentScore(points);
 
     // 데이터베이스에 점수 저장
     const scoreRef = ref(
@@ -487,9 +506,25 @@ export default function App(): JSX.Element {
 
         if (snapshot.exists()) {
           playerScores = snapshot.val() as PlayerScore[];
+
+          // 여기에 디버깅 로그 추가
+          console.log("기존 DB 점수:", playerScores);
         }
 
-        playerScores.push(newScore);
+        // 동일한 라운드 점수가 이미 있는지 확인
+        const existingScoreIndex = playerScores.findIndex(
+          (s) => s.round === currentRound
+        );
+
+        if (existingScoreIndex !== -1) {
+          // 이미 있으면 업데이트
+          playerScores[existingScoreIndex] = newScore;
+        } else {
+          // 없으면 추가
+          playerScores.push(newScore);
+        }
+
+        console.log("저장할 DB 점수:", playerScores);
         set(scoreRef, playerScores);
       },
       { onlyOnce: true }
@@ -505,6 +540,9 @@ export default function App(): JSX.Element {
 
     console.log("눈치 게임 시작"); // 디버깅 로그
 
+    // 초기 버튼 색상 설정
+    setButtonColor("#007bff");
+
     // 게임 상태 업데이트
     updateGameState({
       mode: "timing",
@@ -517,19 +555,22 @@ export default function App(): JSX.Element {
     // 로컬 상태 업데이트
     setIsGameActive(true);
     setCurrentScore(null);
-    setButtonColor("#007bff");
     setClickOrder(0);
 
     console.log("타이머 시작 직전, isGameActive:", true); // 디버깅 로그 추가
 
-    // 타이머 시작
-    startTimingGameTimer();
+    // 약간의 지연 후 타이머 시작 (상태 업데이트 완료 후)
+    setTimeout(() => {
+      startTimingGameTimer();
+    }, 200);
   };
 
-  // 눈치 게임 타이머 시작
+  // 컴포넌트 상단에 ref 추가
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // 눈치 게임 타이머 시작
   const startTimingGameTimer = () => {
-    // null 체크 후 clearTimeout 호출
+    // 기존 타이머 정리
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -540,7 +581,7 @@ export default function App(): JSX.Element {
 
     const updateTimer = () => {
       const elapsedTime = Date.now() - startTime;
-      const progress = Math.min(elapsedTime / 4000, 1); // 4초 경과 = 100%
+      const progress = Math.min(elapsedTime / 4000, 1); // 4초 = 100%
 
       // 파란색(#007bff)에서 빨간색(#dc3545)로 변화
       const red = Math.floor(0 + (220 - 0) * progress);
@@ -549,12 +590,16 @@ export default function App(): JSX.Element {
 
       const newColor = `rgb(${red}, ${green}, ${blue})`;
       console.log(
-        `색상 변경: ${newColor}, 진행도: ${Math.round(
-          progress * 100
-        )}%, 경과 시간: ${elapsedTime}ms`
+        `색상 변경: ${newColor}, 진행도: ${Math.round(progress * 100)}%`
       );
 
+      // 상태 업데이트
       setButtonColor(newColor);
+
+      // 버튼 요소에 직접 스타일 적용
+      if (buttonRef.current) {
+        buttonRef.current.style.backgroundColor = newColor;
+      }
 
       // 관리자인 경우 색상 상태 업데이트
       if (isAdmin && sessionId) {
@@ -565,34 +610,10 @@ export default function App(): JSX.Element {
 
       // 4초 후 자동 폭발
       if (elapsedTime >= 4000) {
-        console.log("타이머 종료 - 폭발!");
-
-        // 타이머 정리
-        if (timerRef.current !== null) {
-          clearTimeout(timerRef.current);
-          timerRef.current = null;
-        }
-
-        // 폭발 시 모든 유저에게 전달되도록 수정
-        if (isAdmin && sessionId) {
-          updateGameState({
-            isGameActive: false,
-          });
-        }
-
-        // 방장이 아니어도 폭발 처리
-        setIsGameActive(false);
-
-        // 점수 추가 (폭발 = -5점)
-        // 폭발했지만 아직 점수가 없는 경우에만 추가
-        if (currentScore === null) {
-          addScore(-5);
-        }
-
-        return; // 타이머 종료
+        // 나머지 코드 동일...
       }
 
-      // 다음 업데이트 예약 (50ms 간격)
+      // 다음 업데이트 예약
       timerRef.current = window.setTimeout(updateTimer, 50);
     };
 
@@ -602,6 +623,9 @@ export default function App(): JSX.Element {
 
   // 버튼 클릭 처리 함수
   const handleButtonClick = () => {
+    // 테스트: 버튼 색상을 즉시 빨간색으로 변경
+    setButtonColor("#dc3545");
+    console.log("버튼 색상 수동 변경: #dc3545");
     // 이미 게임이 비활성화되었거나 세션이 없는 경우 무시
     if (!isGameActive || !sessionId || !playerId) return;
 
@@ -612,13 +636,6 @@ export default function App(): JSX.Element {
       console.log("이미 점수가 있어 클릭 무시:", currentScore);
       return;
     }
-
-    // 클릭 효과 생성
-          // 애니메이션 후 요소 제거
-          setTimeout(() => {
-            ripple.remove();
-          }, 1000);
-        }
 
     // 타이머 정지
     if (timerRef.current) {
@@ -643,12 +660,31 @@ export default function App(): JSX.Element {
     let points: number;
     const totalPlayers = players.length;
 
-    // 점수 계산 로직
-    if (totalPlayers === 2) {
+    // 점수 계산 로직 디버깅
+    console.log(
+      "점수 계산 시작, 클릭 순서:",
+      newClickOrder,
+      "총 인원:",
+      totalPlayers
+    );
+
+    // 테스트 중이라면 플레이어가 1명일 수 있음
+    if (totalPlayers <= 1) {
+      points = 2; // 혼자일 때는 항상 +2점
+      console.log("혼자 테스트 중이므로 +2점 부여");
+    } else if (totalPlayers === 2) {
       points = newClickOrder === 1 ? -2 : 2; // 첫번째 클릭: -2, 두번째 클릭: +2
+      console.log("2인 플레이, 순서:", newClickOrder, "점수:", points);
     } else if (totalPlayers % 2 === 1) {
       // 홀수 인원 - 중간값을 기준으로 계산
       const middleIndex = Math.floor(totalPlayers / 2);
+
+      console.log(
+        "홀수 인원, 중간 인덱스:",
+        middleIndex,
+        "현재 클릭 순서:",
+        newClickOrder - 1
+      );
 
       if (newClickOrder - 1 < middleIndex) {
         points = -(middleIndex - (newClickOrder - 1)); // 마이너스 점수
@@ -661,6 +697,13 @@ export default function App(): JSX.Element {
       // 짝수 인원
       const middleIndex = totalPlayers / 2 - 1;
 
+      console.log(
+        "짝수 인원, 중간 인덱스:",
+        middleIndex,
+        "현재 클릭 순서:",
+        newClickOrder - 1
+      );
+
       if (newClickOrder - 1 <= middleIndex) {
         points = -(middleIndex - (newClickOrder - 1) + 1);
       } else {
@@ -669,7 +712,7 @@ export default function App(): JSX.Element {
     }
 
     console.log(
-      `점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`
+      `최종 점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`
     );
 
     // 점수 추가
@@ -991,7 +1034,6 @@ export default function App(): JSX.Element {
           </div>
         </div>
       )}
-
       {/* 방 생성 화면 */}
       {gameMode === "create" && (
         <div className="join-screen">
@@ -1020,7 +1062,6 @@ export default function App(): JSX.Element {
           </div>
         </div>
       )}
-
       {/* 참여 화면 */}
       {gameMode === "join" && (
         <div className="join-screen">
@@ -1063,7 +1104,6 @@ export default function App(): JSX.Element {
           </div>
         </div>
       )}
-
       {/* 로비 화면 */}
       {gameMode === "lobby" && (
         <div className="lobby-screen">
@@ -1116,7 +1156,6 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
-
       {/* 눈치 게임 화면 */}
       {gameMode === "timing" && (
         <div className="game-screen">
@@ -1155,11 +1194,13 @@ export default function App(): JSX.Element {
                 ) : (
                   // 시작 버튼
                   <button
+                    ref={buttonRef}
                     className="game-button"
-                    onClick={startGame}
-                    style={{ backgroundColor: "#28a745" }}
+                    style={{ backgroundColor: buttonColor }}
+                    onClick={handleButtonClick}
+                    disabled={!isGameActive}
                   >
-                    <span className="tap-text">Start</span>
+                    <span className="tap-text">Freshhh</span>
                   </button>
                 )
               ) : (
@@ -1192,7 +1233,6 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
-
       {/* 빛 이동 게임 화면 */}
       {gameMode === "light" && (
         <div className="game-screen">
