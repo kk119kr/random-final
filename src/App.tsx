@@ -316,11 +316,10 @@ export default function App(): JSX.Element {
       setClickOrder(gameState.clickOrder);
  
       // 결과 화면에서 랭킹 표시
- if (gameState.mode === "result") {
-  calculateRankings(gameState.timingScores);
-}
-};
-
+      if (gameState.mode === "result") {
+        calculateRankings(gameState.timingScores);
+      }
+    };
       // 내 점수 가져오기
       if (
         playerId &&
@@ -1114,28 +1113,22 @@ export default function App(): JSX.Element {
           </div>
 
           <div className="button-container">
-            <button
-              className="game-button"
-              style={{ backgroundColor: buttonColor }}
-              onClick={handleButtonClick}
-              disabled={!isGameActive}
-            >
-              {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
-              {isGameActive && <span className="tap-text">Freshhh</span>}
-            </button>
-          </div>
-
-          {/* 방장에게만 다음 버튼 표시 (게임 비활성화 상태일 때) */}
-          {!isGameActive && isAdmin && (
-            <button onClick={nextRound} className="next-button">
-              {currentRound < 3 ? "NEXT" : "결과"}
-            </button>
-          )}
-
-          <button onClick={leaveSession} className="back-button">
-            ×
-          </button>
-        </div>
+  {!isGameActive && isAdmin ? (
+    <button onClick={startGame} className="start-button">
+      게임 시작
+    </button>
+  ) : (
+    <button
+      className="game-button"
+      style={{ backgroundColor: buttonColor }}
+      onClick={handleButtonClick}
+      disabled={!isGameActive}
+    >
+      {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
+      {isGameActive && <span className="tap-text">Freshhh</span>}
+    </button>
+  )}
+</div>
       )}
 
       {/* 빛 이동 게임 화면 */}
