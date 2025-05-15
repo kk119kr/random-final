@@ -348,14 +348,45 @@ h1 {
   cursor: default;
 }
 
+/* 버튼 내 "Freshhh" 텍스트 */
 .tap-text {
   color: white;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
 }
 
-/* 다음 버튼 스타일 (Freshhh 텍스트를 위한 스타일) */
+/* 클릭 효과 */
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4); /* 흰색 반투명 */
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  opacity: 1;
+  animation: ripple 1s linear forwards;
+  pointer-events: none; /* 클릭 이벤트 방해 방지 */
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 500px;
+    height: 500px;
+    opacity: 0;
+  }
+}
+
+/* 다음 버튼 - 방장만 보이는 버튼 */
 .next-button {
   position: absolute;
   bottom: 60px;
@@ -364,11 +395,10 @@ h1 {
   color: white;
   padding: 14px 30px;
   border-radius: 12px;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 1px;
 }
 
 .next-button:hover {
@@ -380,7 +410,27 @@ h1 {
   transform: translateY(1px);
 }
 
-/* 점수 표시 중립 색상 (0점을 위한 클래스) */
+/* 점수 버블 */
+.score-bubble {
+  position: absolute;
+  top: 50px;
+  font-size: 36px;
+  font-weight: bold;
+  animation: fadeIn 0.5s;
+  padding: 10px 20px;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 유틸리티 클래스 */
+.positive {
+  color: #34c759;
+}
+
+.negative {
+  color: #ff3b30;
+}
+
 .neutral {
   color: #8e8e93;
 }

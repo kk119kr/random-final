@@ -503,6 +503,13 @@ export default function App(): JSX.Element {
   };
 
   // 눈치 게임 타이머 시작
+
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+  }
+
+  const startTime = Date.now();
+
   const startTimingGameTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -512,7 +519,7 @@ export default function App(): JSX.Element {
 
     timerRef.current = window.setInterval(() => {
       const elapsedTime = Date.now() - startTime;
-      const progress = Math.min(elapsedTime / 10000, 1); // 10초 경과 = 100%
+      const progress = Math.min(elapsedTime / 4000, 1); // 4초 경과 = 100%
 
       // 파란색(#007bff)에서 빨간색(#dc3545)로 변화
       const red = Math.floor(0 + (220 - 0) * progress);
@@ -529,8 +536,8 @@ export default function App(): JSX.Element {
         });
       }
 
-      // 10초 후 자동 폭발
-      if (elapsedTime >= 10000) {
+      // 4초 후 자동 폭발
+      if (elapsedTime >= 4000) {
         clearInterval(timerRef.current!);
         timerRef.current = null;
 
@@ -552,7 +559,7 @@ export default function App(): JSX.Element {
         // 점수 추가 (폭발 = -5점)
         addScore(-5);
       }
-    }, 100);
+    }, 50); // 더 부드러운 색상 변화를 위해 업데이트 간격 감소
   };
 
   // 버튼 클릭 처리 함수
@@ -593,7 +600,7 @@ export default function App(): JSX.Element {
         points = 2; // 두 번째 클릭한 사람은 플러스
       }
     }
-    // 홀수 인원인 경우: 중간에 클릭한 사람은 0점
+    // 홀수 인원인 경우 (3, 5, 7명 등)
     else if (totalPlayers % 2 === 1) {
       const middleIndex = Math.floor(totalPlayers / 2);
 
@@ -608,15 +615,15 @@ export default function App(): JSX.Element {
         points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
       }
     }
-    // 짝수 인원인 경우: 일반적인 점수 계산
+    // 짝수 인원인 경우 (4, 6, 8명 등)
     else {
       const middleIndex = totalPlayers / 2 - 1;
 
       if (clickOrder <= middleIndex) {
-        // 중간 이전에 클릭한 사람들은 마이너스 점수
+        // 중간 이하에 클릭한 사람들은 마이너스 점수
         points = -(middleIndex - clickOrder + 1); // 클릭 순서가 빠를수록 더 큰 마이너스
       } else {
-        // 중간 이후에 클릭한 사람들은 플러스 점수
+        // 중간 초과에 클릭한 사람들은 플러스 점수
         points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
       }
     }
@@ -1060,13 +1067,13 @@ export default function App(): JSX.Element {
               onClick={handleButtonClick}
               disabled={!isGameActive}
             >
-              <span className="tap-text">{isGameActive ? "TAP" : ""}</span>
+              <span className="tap-text">{isGameActive ? "Freshhh" : ""}</span>
             </button>
           </div>
 
           {!isGameActive && currentScore !== null && isAdmin && (
             <button onClick={nextRound} className="next-button">
-              {currentRound < 3 ? "Freshhh" : "결과"}
+              {currentRound < 3 ? "next" : "결과"}
             </button>
           )}
 
