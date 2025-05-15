@@ -321,7 +321,8 @@ export default function App(): JSX.Element {
         gameState.timingScores &&
         gameState.timingScores[playerId]
       ) {
-        setScores(gameState.timingScores[playerId]);
+        const playerScores = gameState.timingScores[playerId];
+        setScores(playerScores);
 
         // 현재 라운드의 점수 찾기
         const roundScore = gameState.timingScores[playerId].find(
@@ -544,11 +545,6 @@ export default function App(): JSX.Element {
       const blue = Math.floor(255 * (1 - progress));
 
       const newColor = `rgb(${red}, ${green}, ${blue})`;
-      // 디버깅을 위해 로그 추가
-      console.log(
-        `색상 변경: ${newColor}, 진행도: ${Math.round(progress * 100)}%`
-      );
-
       setButtonColor(newColor);
 
       // 관리자인 경우 색상 상태 업데이트
@@ -558,17 +554,57 @@ export default function App(): JSX.Element {
         });
       }
 
-      // 4초 후 자동 폭발
+      // 4초 후 자동 폭발 - 이 부분에 문제가 있습니다.
       if (elapsedTime >= 4000) {
         console.log("타이머 종료 - 폭발!");
         clearInterval(timerRef.current!);
         timerRef.current = null;
 
-        // 게임 종료 및 폭발 효과
+        // 폭발 시 모든 유저에게 전달되도록 수정
         if (isAdmin && sessionId) {
           updateGameState({
             isGameActive: false,
           });
+
+          // 게임 종료 후 모든 플레이어의 점수를 처리하기 위한 추가 코드
+          const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+          onValue(
+            gameStateRef,
+            (snapshot) => {
+              if (snapshot.exists()) {
+                const currentState = snapshot.val() as GameState;
+                // 아직 클릭하지 않은 플레이어들에게 폭발 점수 추가
+                players.forEach((player) => {
+                  if (
+                    !currentState.timingScores ||
+                    !currentState.timingScores[player.id] ||
+                    !currentState.timingScores[player.id].find(
+                      (score) => score.round === currentRound
+                    )
+                  ) {
+                    const scoreRef = ref(
+                      database,
+                      `sessions/${sessionId}/gameState/timingScores/${player.id}`
+                    );
+
+                    onValue(
+                      scoreRef,
+                      (scoreSnapshot) => {
+                        let playerScores: PlayerScore[] = [];
+                        if (scoreSnapshot.exists()) {
+                          playerScores = scoreSnapshot.val() as PlayerScore[];
+                        }
+                        playerScores.push({ round: currentRound, points: -5 });
+                        set(scoreRef, playerScores);
+                      },
+                      { onlyOnce: true }
+                    );
+                  }
+                });
+              }
+            },
+            { onlyOnce: true }
+          );
         }
 
         setIsGameActive(false);
@@ -580,7 +616,10 @@ export default function App(): JSX.Element {
         }, 300);
 
         // 점수 추가 (폭발 = -5점)
-        addScore(-5);
+        // 폭발했지만 아직 점수가 없는 경우에만 추가
+        if (!currentScore) {
+          addScore(-5);
+        }
       }
     }, 50);
   };
@@ -602,6 +641,11 @@ export default function App(): JSX.Element {
       }, 1000);
     }
 
+    // 이미 점수를 받았으면 무시
+    if (currentScore !== null) {
+      return;
+    }
+
     // 게임 상태 업데이트
     updateGameState({
       clickOrder: clickOrder + 1,
@@ -611,7 +655,7 @@ export default function App(): JSX.Element {
     setIsGameActive(false);
     setClickOrder((prev) => prev + 1);
 
-    // 참가자 수에 따라 점수 계산 로직 변경
+    // 참가자 수에 따라 점수 계산 로직 수정
     let points: number;
     const totalPlayers = players.length;
 
@@ -907,6 +951,7 @@ export default function App(): JSX.Element {
   const calculateRankings = (timingScores: {
     [playerId: string]: PlayerScore[];
   }) => {
+    // 플레이어별 총점 계산
     const rankings: PlayerWithScore[] = players.map((player) => {
       const playerScores = timingScores[player.id] || [];
       const totalScore = playerScores.reduce(
