@@ -530,14 +530,14 @@ export default function App(): JSX.Element {
 
   const startTimingGameTimer = () => {
     if (timerRef.current) {
-      clearInterval(timerRef.current);
+      clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
     console.log("타이머 시작"); // 디버깅 로그
     const startTime = Date.now();
 
-    timerRef.current = window.setInterval(() => {
+    const updateTimer = () => {
       const elapsedTime = Date.now() - startTime;
       const progress = Math.min(elapsedTime / 4000, 1); // 4초 경과 = 100%
 
@@ -551,7 +551,7 @@ export default function App(): JSX.Element {
         `색상 변경: ${newColor}, 진행도: ${Math.round(
           progress * 100
         )}%, 경과 시간: ${elapsedTime}ms`
-      ); // 디버깅 로그 추가
+      );
 
       setButtonColor(newColor);
 
@@ -566,8 +566,8 @@ export default function App(): JSX.Element {
       if (elapsedTime >= 4000) {
         console.log("타이머 종료 - 폭발!"); // 디버깅 로그
 
-        // 인터벌 정리
-        clearInterval(timerRef.current!);
+        // 타이머 정리
+        clearTimeout(timerRef.current);
         timerRef.current = null;
 
         // 폭발 시 모든 유저에게 전달되도록 수정
@@ -575,10 +575,10 @@ export default function App(): JSX.Element {
           updateGameState({
             isGameActive: false,
           });
-        } else {
-          // 방장이 아닌 유저도 폭발 처리를 할 수 있도록 수정
-          setIsGameActive(false);
         }
+
+        // 방장이 아니어도 폭발 처리
+        setIsGameActive(false);
 
         // 폭발 효과
         document.body.style.backgroundColor = "#dc3545";
@@ -591,84 +591,99 @@ export default function App(): JSX.Element {
         if (currentScore === null) {
           addScore(-5);
         }
+
+        return; // 타이머 종료
       }
-    }, 50); // 더 짧은 간격으로 업데이트
+
+      // 다음 업데이트 예약 (50ms 간격)
+      timerRef.current = setTimeout(updateTimer, 50);
+    };
+
+    // 첫 번째 업데이트 시작
+    updateTimer();
   };
 
   // 버튼 클릭 처리 함수
   const handleButtonClick = () => {
+    // 이미 게임이 비활성화되었거나 세션이 없는 경우 무시
     if (!isGameActive || !sessionId || !playerId) return;
-
+    
+    console.log("Freshhh 버튼 클릭됨!");
+  
+    // 이미 점수를 받았으면 무시
+    if (currentScore !== null) {
+      console.log("이미 점수가 있어 클릭 무시:", currentScore);
+      return;
+    }
+  
     // 클릭 효과 생성
     const buttonElement = document.querySelector(".game-button");
     if (buttonElement) {
       const ripple = document.createElement("span");
       ripple.classList.add("ripple-effect");
       buttonElement.appendChild(ripple);
-
+  
       // 애니메이션 후 요소 제거
       setTimeout(() => {
         ripple.remove();
       }, 1000);
     }
-
-    // 이미 점수를 받았으면 무시
-    if (currentScore !== null) {
-      return;
+  
+    // 타이머 정지
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
-
-    // 게임 상태 업데이트
+  
+    // 로컬 상태 업데이트 
+    setIsGameActive(false);
+    
+    // 먼저 내 로컬 clickOrder 증가
+    const newClickOrder = clickOrder + 1;
+    setClickOrder(newClickOrder);
+    
+    // DB 업데이트는 별도로 진행
     updateGameState({
-      clickOrder: clickOrder + 1,
+      clickOrder: newClickOrder,
       isGameActive: false, // 한 명이 클릭하면 게임 종료
     });
-
-    setIsGameActive(false);
-    setClickOrder((prev) => prev + 1);
-
+  
     // 참가자 수에 따라 점수 계산 로직 수정
     let points: number;
     const totalPlayers = players.length;
-
-    // 2명인 경우: 첫 번째 클릭은 -2점, 두 번째 클릭은 +2점
+  
+    // 점수 계산 로직
     if (totalPlayers === 2) {
-      if (clickOrder === 0) {
-        points = -2; // 첫 번째 클릭한 사람은 마이너스
-      } else {
-        points = 2; // 두 번째 클릭한 사람은 플러스
-      }
+      points = newClickOrder === 1 ? -2 : 2; // 첫번째 클릭: -2, 두번째 클릭: +2
     }
-    // 홀수 인원인 경우 (3, 5, 7명 등)
     else if (totalPlayers % 2 === 1) {
+      // 홀수 인원 - 중간값을 기준으로 계산
       const middleIndex = Math.floor(totalPlayers / 2);
-
-      if (clickOrder < middleIndex) {
-        // 중간보다 먼저 클릭한 사람들은 마이너스 점수
-        points = -(middleIndex - clickOrder); // 클릭 순서가 빠를수록 더 큰 마이너스
-      } else if (clickOrder === middleIndex) {
-        // 중간에 클릭한 사람은 0점
-        points = 0;
+      
+      if (newClickOrder - 1 < middleIndex) {
+        points = -(middleIndex - (newClickOrder - 1)); // 마이너스 점수
+      } else if (newClickOrder - 1 === middleIndex) {
+        points = 0; // 중간값은 0점
       } else {
-        // 중간보다 늦게 클릭한 사람들은 플러스 점수
-        points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
+        points = (newClickOrder - 1) - middleIndex; // 플러스 점수
       }
-    }
-    // 짝수 인원인 경우 (4, 6, 8명 등)
+    } 
     else {
+      // 짝수 인원
       const middleIndex = totalPlayers / 2 - 1;
-
-      if (clickOrder <= middleIndex) {
-        // 중간 이하에 클릭한 사람들은 마이너스 점수
-        points = -(middleIndex - clickOrder + 1); // 클릭 순서가 빠를수록 더 큰 마이너스
+      
+      if (newClickOrder - 1 <= middleIndex) {
+        points = -(middleIndex - (newClickOrder - 1) + 1);
       } else {
-        // 중간 초과에 클릭한 사람들은 플러스 점수
-        points = clickOrder - middleIndex; // 클릭 순서가 늦을수록 더 큰 플러스
+        points = (newClickOrder - 1) - middleIndex;
       }
     }
-
+  
+    console.log(`점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`);
+    
     // 점수 추가
     addScore(points);
-
+  };
     // 타이머 정지
     if (timerRef.current) {
       clearInterval(timerRef.current);
