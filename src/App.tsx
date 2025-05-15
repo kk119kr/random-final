@@ -614,17 +614,11 @@ export default function App(): JSX.Element {
     }
 
     // 클릭 효과 생성
-    const buttonElement = document.querySelector(".game-button");
-    if (buttonElement) {
-      const ripple = document.createElement("span");
-      ripple.classList.add("ripple-effect");
-      buttonElement.appendChild(ripple);
-
-      // 애니메이션 후 요소 제거
-      setTimeout(() => {
-        ripple.remove();
-      }, 1000);
-    }
+          // 애니메이션 후 요소 제거
+          setTimeout(() => {
+            ripple.remove();
+          }, 1000);
+        }
 
     // 타이머 정지
     if (timerRef.current) {
