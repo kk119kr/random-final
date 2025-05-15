@@ -302,19 +302,19 @@ export default function App(): JSX.Element {
     setGameState(gameState);
     // 방장 여부 업데이트
     setIsAdmin(playerId === adminId);
-  
+
     // 게임 모드 업데이트
     if (gameState.mode !== "lobby") {
       setGameMode(gameState.mode);
     }
-  
+
     // 눈치 게임 상태 업데이트
     if (gameState.mode === "timing") {
       setCurrentRound(gameState.round);
       setIsGameActive(gameState.isGameActive);
       setButtonColor(gameState.buttonColor);
       setClickOrder(gameState.clickOrder);
-  
+
       // 내 점수 가져오기
       if (
         playerId &&
@@ -322,100 +322,52 @@ export default function App(): JSX.Element {
         gameState.timingScores[playerId]
       ) {
         setScores(gameState.timingScores[playerId]);
-  
+
         // 현재 라운드의 점수 찾기
         const roundScore = gameState.timingScores[playerId].find(
           (score) => score.round === gameState.round
         );
-  
+
         if (roundScore) {
           setCurrentScore(roundScore.points);
         } else {
           setCurrentScore(null);
         }
       }
-  
+
       // 방장인 경우 타이머 관리
       if (isAdmin && gameState.isGameActive) {
         startTimingGameTimer();
       }
     }
-  
+
     // 빛 이동 게임 상태 업데이트
     if (gameState.mode === "light") {
       setIsLightGameActive(gameState.isGameActive);
-  
+
       // 내 순서인지 확인
       if (playerId && gameState.activeLightPlayerId === playerId) {
         setIsLightActive(true);
       } else {
         setIsLightActive(false);
       }
-  
+
       // 내가 선택되었는지 확인
       if (playerId && gameState.selectedPlayerId === playerId) {
         setIsSelected(true);
       } else {
         setIsSelected(false);
       }
-  
+
       // 방장인 경우 빛 이동 관리
       if (isAdmin && gameState.isGameActive && !lightTimerRef.current) {
         startLightGameAnimation();
       }
     }
-  
+
     // 결과 화면에서 랭킹 표시
     if (gameState.mode === "result") {
       calculateRankings(gameState.timingScores);
-    }
-  };
-      // 내 점수 가져오기
-      if (
-        playerId &&
-        gameState.timingScores &&
-        gameState.timingScores[playerId]
-      ) {
-        setScores(gameState.timingScores[playerId]);
-
-        // 현재 라운드의 점수 찾기
-        const roundScore = gameState.timingScores[playerId].find(
-          (score) => score.round === gameState.round
-        );
-
-        if (roundScore) {
-          setCurrentScore(roundScore.points);
-        }
-      }
-
-      // 방장인 경우 타이머 관리
-      if (isAdmin && gameState.isGameActive) {
-        startTimingGameTimer();
-      }
-    }
-
-    // 빛 이동 게임 상태 업데이트
-    if (gameState.mode === "light") {
-      setIsLightGameActive(gameState.isGameActive);
-
-      // 내 순서인지 확인
-      if (playerId && gameState.activeLightPlayerId === playerId) {
-        setIsLightActive(true);
-      } else {
-        setIsLightActive(false);
-      }
-
-      // 내가 선택되었는지 확인
-      if (playerId && gameState.selectedPlayerId === playerId) {
-        setIsSelected(true);
-      } else {
-        setIsSelected(false);
-      }
-
-      // 방장인 경우 빛 이동 관리
-      if (isAdmin && gameState.isGameActive && !lightTimerRef.current) {
-        startLightGameAnimation();
-      }
     }
   };
 
@@ -572,12 +524,6 @@ export default function App(): JSX.Element {
   };
 
   // 눈치 게임 타이머 시작
-
-  if (timerRef.current) {
-    clearInterval(timerRef.current);
-  }
-
-  const startTime = Date.now();
 
   const startTimingGameTimer = () => {
     if (timerRef.current) {
@@ -993,7 +939,15 @@ export default function App(): JSX.Element {
       }
     };
   }, []);
+  const calculateTotalScore = (): number => {
+    // 점수가 없으면 0 반환
+    if (!scores || scores.length === 0) {
+      return 0;
+    }
 
+    // 모든 라운드 점수 합산
+    return scores.reduce((total, score) => total + score.points, 0);
+  };
   return (
     <div className="App">
       {/* 홈 화면 */}
@@ -1142,73 +1096,55 @@ export default function App(): JSX.Element {
         </div>
       )}
 
- {/* 눈치 게임 화면 */}
-{gameMode === "timing" && (
-  <div className="game-screen">
-    <div className="game-header">
-      <div className="round-indicator">라운드 {currentRound}/3</div>
-      {currentScore !== null && (
-        <div
-          className={`score-bubble ${
-            currentScore > 0
-              ? "positive"
-              : currentScore < 0
-              ? "negative"
-              : "neutral"
-          }`}
-        >
-          {currentScore > 0 ? `+${currentScore}` : currentScore}
-        </div>
-      )}
-    </div>
+      {/* 눈치 게임 화면 */}
+      {gameMode === "timing" && (
+        <div className="game-screen">
+          <div className="game-header">
+            <div className="round-indicator">라운드 {currentRound}/3</div>
+            {currentScore !== null && (
+              <div
+                className={`score-bubble ${
+                  currentScore > 0
+                    ? "positive"
+                    : currentScore < 0
+                    ? "negative"
+                    : "neutral"
+                }`}
+              >
+                {currentScore > 0 ? `+${currentScore}` : currentScore}
+              </div>
+            )}
+          </div>
 
-    <div className="button-container">
-      {!isGameActive && isAdmin ? (
-        <button onClick={startGame} className="start-button">
-          게임 시작
-        </button>
-      ) : (
-        <button
-          className="game-button"
-          style={{ backgroundColor: buttonColor }}
-          onClick={handleButtonClick}
-          disabled={!isGameActive}
-        >
-          {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
-          {isGameActive && <span className="tap-text">Freshhh</span>}
-        </button>
-      )}
-    </div>
-
-    {/* 방장에게만 다음 버튼 표시 (게임 비활성화 상태일 때) */}
-    {!isGameActive && isAdmin && (
-      <button onClick={nextRound} className="next-button">
-        {currentRound < 3 ? "NEXT" : "결과"}
-      </button>
-    )}
-
-    <button onClick={leaveSession} className="back-button">
-      ×
-    </button>
-  </div>
-)}
           <div className="button-container">
-  {!isGameActive && isAdmin ? (
-    <button onClick={startGame} className="start-button">
-      게임 시작
-    </button>
-  ) : (
-    <button
-      className="game-button"
-      style={{ backgroundColor: buttonColor }}
-      onClick={handleButtonClick}
-      disabled={!isGameActive}
-    >
-      {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
-      {isGameActive && <span className="tap-text">Freshhh</span>}
-    </button>
-  )}
-</div>
+            {!isGameActive && isAdmin ? (
+              <button onClick={startGame} className="start-button">
+                게임 시작
+              </button>
+            ) : (
+              <button
+                className="game-button"
+                style={{ backgroundColor: buttonColor }}
+                onClick={handleButtonClick}
+                disabled={!isGameActive}
+              >
+                {/* 게임 활성화 상태에서만 "Freshhh" 텍스트 표시 */}
+                {isGameActive && <span className="tap-text">Freshhh</span>}
+              </button>
+            )}
+          </div>
+
+          {/* 방장에게만 다음 버튼 표시 (게임 비활성화 상태일 때) */}
+          {!isGameActive && isAdmin && (
+            <button onClick={nextRound} className="next-button">
+              {currentRound < 3 ? "NEXT" : "결과"}
+            </button>
+          )}
+
+          <button onClick={leaveSession} className="back-button">
+            ×
+          </button>
+        </div>
       )}
 
       {/* 빛 이동 게임 화면 */}
@@ -1300,37 +1236,40 @@ export default function App(): JSX.Element {
               </div>
             ))}
           </div>
-          
-          {/* 전체 플레이어 랭킹 표시 */}
-<div className="ranking-container">
-  <h3>전체 랭킹</h3>
-  <div className="ranking-list">
-    {playerRankings.map((player, index) => (
-      <div 
-        key={player.id} 
-        className={`ranking-item ${player.id === playerId ? "current-player" : ""}`}
-      >
-        <div className="rank-number">{index + 1}</div>
-        <div className="player-info">
-          <span className="player-name">{player.name}</span>
-          <span className="player-number">({player.number}번)</span>
-        </div>
-        <div 
-          className={`player-score ${
-            player.totalScore > 0
-              ? "positive"
-              : player.totalScore < 0
-              ? "negative"
-              : "neutral"
-          }`}
-        >
-          {player.totalScore > 0 ? `+${player.totalScore}` : player.totalScore}
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
 
+          {/* 전체 플레이어 랭킹 표시 */}
+          <div className="ranking-container">
+            <h3>전체 랭킹</h3>
+            <div className="ranking-list">
+              {playerRankings.map((player, index) => (
+                <div
+                  key={player.id}
+                  className={`ranking-item ${
+                    player.id === playerId ? "current-player" : ""
+                  }`}
+                >
+                  <div className="rank-number">{index + 1}</div>
+                  <div className="player-info">
+                    <span className="player-name">{player.name}</span>
+                    <span className="player-number">({player.number}번)</span>
+                  </div>
+                  <div
+                    className={`player-score ${
+                      player.totalScore > 0
+                        ? "positive"
+                        : player.totalScore < 0
+                        ? "negative"
+                        : "neutral"
+                    }`}
+                  >
+                    {player.totalScore > 0
+                      ? `+${player.totalScore}`
+                      : player.totalScore}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {isAdmin ? (
             <button onClick={startNewGame} className="new-game-button">
