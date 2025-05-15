@@ -361,39 +361,40 @@ export default function App(): JSX.Element {
     // gameState가 null인 경우 일찍 반환
     if (!gameState) return "none";
 
-    if (!isLightActive && !isSelected) {
-      // 빛이 나에게 없고 선택되지 않았을 때 방향 계산
-      if (players.length <= 1) return "none";
-
-      // 빛이 있는 플레이어 찾기
-      const activePlayerIndex = players.findIndex(
-        (player) => player.id === gameState.activeLightPlayerId
-      );
-
-      // 내 위치 찾기
-      const myIndex = players.findIndex((player) => player.id === playerId);
-
-      if (activePlayerIndex === -1 || myIndex === -1) return "none";
-
-      // 플레이어 수
-      const playerCount = players.length;
-
-      // 방향 계산 로직
-      // 시계 방향으로 배치된다고 가정하고 가장 가까운 방향 계산
-      const clockwiseDistance =
-        (activePlayerIndex - myIndex + playerCount) % playerCount;
-      const counterClockwiseDistance =
-        (myIndex - activePlayerIndex + playerCount) % playerCount;
-
-      // 가장 가까운 방향 선택
-      if (clockwiseDistance <= counterClockwiseDistance) {
-        return "right"; // 시계 방향이 더 가까우면 오른쪽
-      } else {
-        return "left"; // 반시계 방향이 더 가까우면 왼쪽
-      }
+    // 빛이 나에게 있거나 선택된 경우 - "both" 반환으로 변경
+    if (isLightActive || isSelected) {
+      return "both"; // 여기를 "none"에서 "both"로 변경!
     }
 
-    return "none"; // 빛이 나에게 있거나 선택된 경우
+    // 빛이 나에게 없고 선택되지 않았을 때 방향 계산
+    if (players.length <= 1) return "none";
+
+    // 빛이 있는 플레이어 찾기
+    const activePlayerIndex = players.findIndex(
+      (player) => player.id === gameState.activeLightPlayerId
+    );
+
+    // 내 위치 찾기
+    const myIndex = players.findIndex((player) => player.id === playerId);
+
+    if (activePlayerIndex === -1 || myIndex === -1) return "none";
+
+    // 플레이어 수
+    const playerCount = players.length;
+
+    // 시계 방향으로 다음 플레이어가 나인지 확인
+    const nextPlayerIndex = (activePlayerIndex + 1) % playerCount;
+    if (nextPlayerIndex === myIndex) {
+      return "left"; // 내가 다음 플레이어라면 왼쪽에서 빛이 올 것임
+    }
+
+    // 반시계 방향으로 이전 플레이어가 나인지 확인
+    const prevPlayerIndex = (activePlayerIndex - 1 + playerCount) % playerCount;
+    if (prevPlayerIndex === myIndex) {
+      return "right"; // 내가 이전 플레이어라면 오른쪽에서 빛이 올 것임
+    }
+
+    return "none"; // 이외의 경우 방향 표시 없음
   };
 
   // 여기에 당첨자 관련 변수 추가

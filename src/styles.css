@@ -456,76 +456,71 @@ h1 {
   overflow: hidden;
 }
 
-/* 빛 효과 - 왼쪽 */
+/* 왼쪽 빛 효과 - 단순화된 접근법 */
 .light-left {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
-  bottom: 0;
+  height: 100%;
   width: 20%;
-  background-color: rgba(255, 220, 0, 0.3);
-  -webkit-mask-image: linear-gradient(
+  background: linear-gradient(
     to right,
-    rgba(0, 0, 0, 0.4),
-    rgba(0, 0, 0, 0)
+    rgba(255, 220, 0, 0.4),
+    rgba(255, 220, 0, 0.1) 60%,
+    rgba(255, 220, 0, 0) 100%
   );
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
   z-index: 1;
-  animation: pulseLeftNew 2s infinite alternate ease-in-out;
+  animation: simpleGlowLeft 2s infinite alternate ease-in-out;
 }
 
-/* 빛 효과 - 오른쪽 */
+/* 오른쪽 빛 효과 - 단순화된 접근법 */
 .light-right {
-  position: fixed;
+  position: absolute;
   right: 0;
   top: 0;
-  bottom: 0;
+  height: 100%;
   width: 20%;
-  background-color: rgba(255, 220, 0, 0.3);
-  -webkit-mask-image: linear-gradient(
+  background: linear-gradient(
     to left,
-    rgba(0, 0, 0, 0.4),
-    rgba(0, 0, 0, 0)
+    rgba(255, 220, 0, 0.4),
+    rgba(255, 220, 0, 0.1) 60%,
+    rgba(255, 220, 0, 0) 100%
   );
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
   z-index: 1;
-  animation: pulseRightNew 2s infinite alternate ease-in-out;
+  animation: simpleGlowRight 2s infinite alternate ease-in-out;
 }
 
-/* 빛 효과 - 양쪽 왼쪽 */
+/* 양쪽 빛 효과 - 단순화된 접근법 */
 .light-both-left {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
-  bottom: 0;
+  height: 100%;
   width: 15%;
-  background-color: rgba(255, 220, 0, 0.25);
-  -webkit-mask-image: linear-gradient(
+  background: linear-gradient(
     to right,
-    rgba(0, 0, 0, 0.35),
-    rgba(0, 0, 0, 0)
+    rgba(255, 220, 0, 0.35),
+    rgba(255, 220, 0, 0.08) 60%,
+    rgba(255, 220, 0, 0) 100%
   );
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
   z-index: 1;
-  animation: pulseBothLeftNew 2.5s infinite alternate ease-in-out;
+  animation: simpleGlowBothLeft 2.5s infinite alternate ease-in-out;
 }
 
-/* 빛 효과 - 양쪽 오른쪽 */
 .light-both-right {
-  position: fixed;
+  position: absolute;
   right: 0;
   top: 0;
-  bottom: 0;
+  height: 100%;
   width: 15%;
-  background-color: rgba(255, 220, 0, 0.25);
-  -webkit-mask-image: linear-gradient(
+  background: linear-gradient(
     to left,
-    rgba(0, 0, 0, 0.35),
-    rgba(0, 0, 0, 0)
+    rgba(255, 220, 0, 0.35),
+    rgba(255, 220, 0, 0.08) 60%,
+    rgba(255, 220, 0, 0) 100%
   );
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
   z-index: 1;
-  animation: pulseBothRightNew 2.5s infinite alternate ease-in-out;
+  animation: simpleGlowBothRight 2.5s infinite alternate ease-in-out;
 }
 
 /* 당첨자 콘텐츠 */
@@ -538,6 +533,51 @@ h1 {
   width: 100%;
   background-color: transparent !important;
   padding: 0 !important;
+}
+
+/* 간단한 빛 애니메이션 */
+@keyframes simpleGlowLeft {
+  from {
+    opacity: 0.3;
+    width: 15%;
+  }
+  to {
+    opacity: 0.5;
+    width: 20%;
+  }
+}
+
+@keyframes simpleGlowRight {
+  from {
+    opacity: 0.3;
+    width: 15%;
+  }
+  to {
+    opacity: 0.5;
+    width: 20%;
+  }
+}
+
+@keyframes simpleGlowBothLeft {
+  from {
+    opacity: 0.25;
+    width: 12%;
+  }
+  to {
+    opacity: 0.4;
+    width: 18%;
+  }
+}
+
+@keyframes simpleGlowBothRight {
+  from {
+    opacity: 0.25;
+    width: 12%;
+  }
+  to {
+    opacity: 0.4;
+    width: 18%;
+  }
 }
 
 /* 당첨자 이름 - 큰 크기 */
