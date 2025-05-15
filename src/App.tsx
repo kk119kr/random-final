@@ -121,8 +121,8 @@ export default function App(): JSX.Element {
   const [joinUrl, setJoinUrl] = useState<string>("");
 
   // 타이머 및 애니메이션 ref
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const lightTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<number | null>(null);
+  const lightTimerRef = useRef<number | null>(null);
 
   // 세션 생성 함수
   const createSession = () => {
@@ -529,12 +529,13 @@ export default function App(): JSX.Element {
   // 눈치 게임 타이머 시작
 
   const startTimingGameTimer = () => {
-    if (timerRef.current) {
+    // null 체크 후 clearTimeout 호출
+    if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
-    console.log("타이머 시작"); // 디버깅 로그
+    console.log("타이머 시작");
     const startTime = Date.now();
 
     const updateTimer = () => {
@@ -564,11 +565,13 @@ export default function App(): JSX.Element {
 
       // 4초 후 자동 폭발
       if (elapsedTime >= 4000) {
-        console.log("타이머 종료 - 폭발!"); // 디버깅 로그
+        console.log("타이머 종료 - 폭발!");
 
         // 타이머 정리
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
+        if (timerRef.current !== null) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
 
         // 폭발 시 모든 유저에게 전달되도록 수정
         if (isAdmin && sessionId) {
@@ -596,7 +599,7 @@ export default function App(): JSX.Element {
       }
 
       // 다음 업데이트 예약 (50ms 간격)
-      timerRef.current = setTimeout(updateTimer, 50);
+      timerRef.current = window.setTimeout(updateTimer, 50);
     };
 
     // 첫 번째 업데이트 시작
