@@ -45,6 +45,7 @@ const SafeQRCode = ({ value, size }: { value: string; size: number }) => {
   }
 };
 
+type LightDirection = "none" | "left" | "right" | "both";
 type GameMode =
   | "home"
   | "timing"
@@ -356,7 +357,7 @@ export default function App(): JSX.Element {
   };
 
   // 빛 방향 표시 로직 추가
-  const getLightDirection = () => {
+  const getLightDirection = (): LightDirection => {
     // gameState가 null인 경우 일찍 반환
     if (!gameState) return "none";
 
@@ -1025,7 +1026,7 @@ export default function App(): JSX.Element {
         <div className="game-screen">
           <div className="player-indicator">{playerNumber}번</div>
 
-          {/* 빛 방향 효과 추가 - 수정된 부분 */}
+          {/* 빛 방향 효과 */}
           <div className="light-container">
             {getLightDirection() === "left" && (
               <div className="light-left"></div>
@@ -1033,7 +1034,7 @@ export default function App(): JSX.Element {
             {getLightDirection() === "right" && (
               <div className="light-right"></div>
             )}
-            {/* 빛이 양쪽으로 새는 효과 추가 */}
+            {/* 빛이 양쪽으로 새는 효과 */}
             {getLightDirection() === "both" && (
               <>
                 <div className="light-both-left"></div>
@@ -1044,17 +1045,18 @@ export default function App(): JSX.Element {
             <div className="button-container">
               <button
                 className={`light-button ${isLightActive ? "active" : ""} ${
-                  isSelected ? "selected" : ""
+                  isSelected || showWinnerPopup ? "selected" : ""
                 }`}
                 onClick={
                   isAdmin && !isLightGameActive ? startLightGame : undefined
                 }
                 disabled={!isAdmin || isLightGameActive}
               >
-                {isSelected ? (
+                {/* 당첨자 정보 표시 - 모든 참가자에게 표시 */}
+                {showWinnerPopup ? (
                   <div className="winner-content">
-                    <div className="winner-name-small">{winner?.name}</div>
-                    <div className="chill-text-small">Chill</div>
+                    <div className="winner-name-large">{winner?.name}</div>
+                    <div className="chill-text-large">Chill</div>
                   </div>
                 ) : isAdmin && !isLightGameActive ? (
                   "Chill"
@@ -1063,6 +1065,13 @@ export default function App(): JSX.Element {
                 )}
               </button>
             </div>
+
+            {/* 다시 하기 버튼 - 방장에게만 표시 */}
+            {showWinnerPopup && isAdmin && (
+              <button onClick={startNewGame} className="restart-button">
+                다시 하기
+              </button>
+            )}
           </div>
 
           <button onClick={leaveSession} className="back-button">
