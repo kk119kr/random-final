@@ -583,12 +583,6 @@ export default function App(): JSX.Element {
         // 방장이 아니어도 폭발 처리
         setIsGameActive(false);
 
-        // 폭발 효과
-        document.body.style.backgroundColor = "#dc3545";
-        setTimeout(() => {
-          document.body.style.backgroundColor = "";
-        }, 300);
-
         // 점수 추가 (폭발 = -5점)
         // 폭발했지만 아직 점수가 없는 경우에만 추가
         if (currentScore === null) {
