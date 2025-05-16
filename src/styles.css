@@ -322,7 +322,7 @@ h1 {
   justify-content: center;
 }
 
-/* 눈치 게임 버튼 */
+/* 게임 버튼 색상 전환 관련 스타일 */
 .game-button {
   width: 240px;
   height: 240px;
@@ -333,19 +333,42 @@ h1 {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.1s ease; /* 색상 변화를 더 부드럽게 */
+  transition: background-color 0.08s linear; /* 더 짧고 선형적인 전환 효과 */
   box-shadow: 0 0 30px rgba(0, 123, 255, 0.6); /* 그림자 강화 */
   position: relative;
   overflow: hidden; /* 버튼 바깥으로 넘치는 부분 숨김 */
+
+  /* 기타 속성 */
+  transition: background-color 0.08s linear;
+  /* GPU 가속 속성들 */
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  transform: translate3d(0, 0, 0);
+  transform: translateZ(0);
 }
 
-.game-button:active {
-  transform: scale(0.97);
+@media (prefers-reduced-motion: no-preference) {
+  .game-button {
+    will-change: background-color;
+  }
 }
 
-.game-button:disabled {
-  opacity: 0.7;
-  cursor: default;
+/* 버튼 그림자 색상도 동적으로 변하게 설정 */
+.game-button[style*="background-color: rgb(0, 123, 255)"] {
+  box-shadow: 0 0 30px rgba(0, 123, 255, 0.6);
+}
+
+.game-button[style*="background-color: rgb(220, 53, 69)"] {
+  box-shadow: 0 0 30px rgba(220, 53, 69, 0.6);
+}
+
+/* 중간 색상에 대한 그림자 처리 */
+.game-button[style*="background-color: rgb("] {
+  box-shadow: 0 0 30px rgba(var(--r, 0), var(--g, 123), var(--b, 255), 0.6);
 }
 
 /* 버튼 내 "Freshhh" 텍스트 */
@@ -874,4 +897,77 @@ h1 {
 
 .next-round-button:active {
   transform: scale(0.95);
+}
+
+.game-button {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background-color: #007bff; /* 초기 파란색 */
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.08s linear !important; /* 더 짧고 선형적인 전환 효과 */
+  box-shadow: 0 0 30px rgba(0, 123, 255, 0.6); /* 그림자 강화 */
+  position: relative;
+  overflow: hidden; /* 버튼 바깥으로 넘치는 부분 숨김 */
+
+  /* 애니메이션 성능 개선을 위한 하드웨어 가속 설정 */
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  transform: translate3d(0, 0, 0);
+  transform: translateZ(0);
+}
+
+/* 게임 버튼에 추가적인 애니메이션 최적화 */
+@media (prefers-reduced-motion: no-preference) {
+  .game-button {
+    will-change: background-color;
+  }
+}
+
+/* 버튼이 비활성화된 상태의 스타일 강화 */
+.game-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transition: none !important; /* 비활성화 상태에서는 트랜지션 제거 */
+}
+
+/* 버튼 활성 상태 스타일 */
+.game-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* 시작/결과 버튼 스타일 강화 */
+.game-button.next-round-button,
+.game-button[style*="background-color: rgb(40, 167, 69)"] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  transform: translateZ(0);
+}
+
+.game-button.next-round-button:hover,
+.game-button[style*="background-color: rgb(40, 167, 69)"]:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 40px rgba(40, 167, 69, 0.7);
+}
+
+/* 버튼 내 "Freshhh" 텍스트 */
+.tap-text {
+  color: white;
+  font-size: 40px; /* 더 큰 크기 */
+  font-weight: 800; /* 더 굵게 */
+  letter-spacing: 2px;
+  text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.4); /* 그림자 강화 */
+  text-transform: uppercase;
+  pointer-events: none; /* 텍스트 클릭이 버튼 클릭을 방해하지 않도록 */
+}
+.game-button {
+  transition: background-color 0.1s linear;
+  will-change: background-color;
 }

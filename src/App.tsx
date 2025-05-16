@@ -11,7 +11,8 @@ import {
 } from "firebase/database";
 import { QRCodeSVG } from "qrcode.react";
 import "./styles.css";
-
+import { serverTimestamp } from "firebase/database"; // 파일 상단 import 부분에 추가
+import { runTransaction } from "firebase/database";
 // QRCode 컴포넌트 에러 방지를 위한 래퍼 컴포넌트
 const SafeQRCode = ({ value, size }: { value: string; size: number }) => {
   try {
@@ -90,6 +91,8 @@ interface GameState {
   round: number;
   buttonColor: string;
   lastUpdateTime: number;
+  startTime?: any; // 타입을 any로 변경
+  clickTime?: any; // 타입을 any로 변경
 }
 
 export default function App(): JSX.Element {
@@ -312,7 +315,22 @@ export default function App(): JSX.Element {
     if (gameState.mode === "timing") {
       setCurrentRound(gameState.round);
       setIsGameActive(gameState.isGameActive);
+
+      // 항상 서버의 버튼 색상을 적용 (이전: isGameActive 조건부 적용)
       setButtonColor(gameState.buttonColor);
+
+      // 중요: 타이머 진행 중일 때는 서버의 색상 값을 무시
+      // 타이머가 활성화된 상태에서만 로컬에서 색상을 관리하고,
+      // 비활성화 상태에서는 서버의 색상 값을 사용
+      if (!isGameActive && gameState.isGameActive) {
+        // 게임이 시작될 때 색상 초기화
+        setButtonColor("#007bff");
+      } else if (!gameState.isGameActive) {
+        // 게임이 종료되면 서버 색상 적용
+        setButtonColor(gameState.buttonColor);
+      }
+      // 그 외 타이머 진행 중에는 로컬 색상 유지
+
       setClickOrder(gameState.clickOrder);
 
       // 내 점수 가져오기
@@ -336,10 +354,52 @@ export default function App(): JSX.Element {
         }
       }
 
-      // 방장인 경우 타이머 관리
-      if (isAdmin && gameState.isGameActive) {
-        startTimingGameTimer();
+      // 방장인 경우에만 타이머 시작
+      if (isAdmin && gameState.isGameActive && !isGameActive) {
+        startTimingGameTimerForced();
       }
+      // 참가자인 경우 타이머 없이 상태만 동기화
+      else if (!isAdmin) {
+        // 기존 타이머 정리
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+
+        // 게임이 시작될 때 참가자도 버튼 색상 애니메이션 적용
+        if (gameState.isGameActive) {
+          setButtonColor("#007bff");
+
+          // 버튼 색상 변화 애니메이션 직접 적용
+          if (buttonRef.current) {
+            // 트랜지션 제거
+            buttonRef.current.style.transition = "none";
+            buttonRef.current.style.backgroundColor = "#007bff";
+
+            // 강제 레이아웃 재계산
+            void buttonRef.current.offsetHeight;
+
+            // 애니메이션 적용
+            buttonRef.current.style.cssText = `
+            background-color: #007bff !important;
+            transition: background-color 4s linear !important;
+            will-change: background-color;
+          `;
+
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (buttonRef.current) {
+                  buttonRef.current.style.backgroundColor = "#dc3545";
+                }
+              });
+            });
+          }
+        }
+      // 방장인 경우에만 모든 플레이어가 클릭했는지 확인
+  if (isAdmin && !gameState.isGameActive) {
+    checkAllPlayersClicked(gameState.timingScores);
+  }
+}
     }
 
     // 빛 이동 게임 상태 업데이트
@@ -368,7 +428,61 @@ export default function App(): JSX.Element {
 
     // 결과 화면에서 랭킹 표시
     if (gameState.mode === "result") {
-      calculateRankings(gameState.timingScores);
+      console.log("결과 화면으로 진입, 동기화");
+
+      // 모드를 명시적으로 'result'로 설정
+      setGameMode("result");
+
+      // 점수 데이터 로깅
+      if (gameState.timingScores) {
+        console.log(
+          "결과 화면 진입, 전체 점수 데이터:",
+          gameState.timingScores
+        );
+
+        // 나의 점수 가져오기
+        if (
+          playerId &&
+          gameState.timingScores &&
+          gameState.timingScores[playerId]
+        ) {
+          let playerScores = [...gameState.timingScores[playerId]];
+
+          // 누락된 라운드 점수 확인 및 추가
+          for (let round = 1; round <= 3; round++) {
+            const hasRoundScore = playerScores.some(
+              (score) => score.round === round
+            );
+            if (!hasRoundScore) {
+              // 누락된 라운드는 폭발 점수(-5) 추가
+              playerScores.push({ round, points: -5 });
+            }
+          }
+
+          // 라운드 순서대로 정렬
+          playerScores.sort((a, b) => a.round - b.round);
+
+          // 점수 상태 업데이트
+          setScores(playerScores);
+
+          // 총점 계산 및 로깅
+          const totalScore = playerScores.reduce(
+            (sum, score) => sum + score.points,
+            0
+          );
+          console.log("총점:", totalScore);
+        } else {
+          console.warn(
+            "결과 화면: 내 점수 데이터가 없음, 플레이어 ID:",
+            playerId
+          );
+        }
+
+        // 랭킹 계산
+        calculateRankings(gameState.timingScores);
+      } else {
+        console.warn("결과 화면: 점수 데이터가 없음");
+      }
     }
   };
 
@@ -472,11 +586,12 @@ export default function App(): JSX.Element {
     if (!sessionId || !playerId) return;
 
     const newScore = { round: currentRound, points };
-    setScores([...scores, newScore]);
-    setCurrentScore(points);
-    console.log("점수 추가:", newScore);
-    console.log("현재 점수 배열:", scores);
+
+    // 로컬 상태 업데이트
     setScores((prevScores) => {
+      console.log("현재 점수 배열:", prevScores);
+
+      // 현재 라운드의 점수가 이미 있는지 확인
       const existingScoreIndex = prevScores.findIndex(
         (s) => s.round === currentRound
       );
@@ -493,52 +608,85 @@ export default function App(): JSX.Element {
     });
 
     setCurrentScore(points);
+    console.log("점수 추가:", newScore);
 
-    // 데이터베이스에 점수 저장
+    // 명확한 경로 설정으로 구조 개선
     const scoreRef = ref(
       database,
       `sessions/${sessionId}/gameState/timingScores/${playerId}`
     );
-    onValue(
-      scoreRef,
-      (snapshot) => {
-        let playerScores: PlayerScore[] = [];
 
-        if (snapshot.exists()) {
-          playerScores = snapshot.val() as PlayerScore[];
+    // 현재 DB에 저장된 점수 가져와서 업데이트
+    return new Promise<void>((resolve) => {
+      onValue(
+        scoreRef,
+        (snapshot) => {
+          let playerScores = [];
 
-          // 여기에 디버깅 로그 추가
-          console.log("기존 DB 점수:", playerScores);
-        }
+          if (snapshot.exists()) {
+            playerScores = snapshot.val();
+            console.log("기존 DB 점수:", playerScores);
+          }
 
-        // 동일한 라운드 점수가 이미 있는지 확인
-        const existingScoreIndex = playerScores.findIndex(
-          (s) => s.round === currentRound
-        );
+          // 현재 라운드의 점수 위치 찾기
+          const existingScoreIndex = playerScores.findIndex(
+            (s: PlayerScore) => s.round === currentRound
+          );
 
-        if (existingScoreIndex !== -1) {
-          // 이미 있으면 업데이트
-          playerScores[existingScoreIndex] = newScore;
-        } else {
-          // 없으면 추가
-          playerScores.push(newScore);
-        }
+          if (existingScoreIndex !== -1) {
+            // 이미 있으면 업데이트
+            playerScores[existingScoreIndex] = newScore;
+          } else {
+            // 없으면 추가
+            playerScores.push(newScore);
+          }
 
-        console.log("저장할 DB 점수:", playerScores);
-        set(scoreRef, playerScores);
-      },
-      { onlyOnce: true }
-    );
+          // 반드시 점수 배열을 라운드 순서대로 정렬
+          playerScores.sort(
+            (a: PlayerScore, b: PlayerScore) => a.round - b.round
+          );
+
+          console.log("저장할 DB 점수:", playerScores);
+
+          // 전체 점수 배열 저장
+          set(scoreRef, playerScores)
+            .then(() => {
+              console.log("점수 저장 성공");
+              resolve();
+            })
+            .catch((error) => {
+              console.error("점수 저장 실패:", error);
+              resolve();
+            });
+        },
+        { onlyOnce: true }
+      );
+    });
+  };
+  const clearAllTimers = () => {
+    console.log("모든 타이머 정리");
+    // 타이머 정리
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // 애니메이션 프레임 정리
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
   };
 
   // 눈치 게임 시작 함수
   const startGame = () => {
+    const startTime = new Date().toISOString();
+    console.log(`[${startTime}] 눈치 게임 시작`);
+
     if (!sessionId || !isAdmin) {
       console.error("게임 시작 실패: 권한 없음");
       return;
     }
-
-    console.log("눈치 게임 시작"); // 디버깅 로그
 
     // 초기 버튼 색상 설정
     setButtonColor("#007bff");
@@ -550,6 +698,7 @@ export default function App(): JSX.Element {
       round: currentRound,
       buttonColor: "#007bff",
       clickOrder: 0,
+      startTime: serverTimestamp() as any, // 타입 단언 추가
     });
 
     // 로컬 상태 업데이트
@@ -557,132 +706,227 @@ export default function App(): JSX.Element {
     setCurrentScore(null);
     setClickOrder(0);
 
-    console.log("타이머 시작 직전, isGameActive:", true); // 디버깅 로그 추가
+    console.log("타이머 시작 직전, isGameActive:", true);
 
-    // 약간의 지연 후 타이머 시작 (상태 업데이트 완료 후)
-    setTimeout(() => {
-      startTimingGameTimer();
-    }, 200);
+    // 수정: 타이머 함수 내에서 isGameActive 체크를 건너뛰고 직접 타이머 설정
+    startTimingGameTimerForced();
   };
 
-  // 컴포넌트 상단에 ref 추가
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const animationFrameIdRef = useRef<number | null>(null);
 
-  // 눈치 게임 타이머 시작
-  const startTimingGameTimer = () => {
-    // 기존 타이머 정리
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+  // 강제 타이머 함수 - isGameActive 체크 없이 항상 실행됨
+  const startTimingGameTimerForced = () => {
+    console.log("강제 타이머 시작");
 
-    console.log("타이머 시작");
-    const startTime = Date.now();
-
-    const updateTimer = () => {
-      const elapsedTime = Date.now() - startTime;
-      const progress = Math.min(elapsedTime / 4000, 1); // 4초 = 100%
-
-      // 파란색(#007bff)에서 빨간색(#dc3545)로 변화
-      const red = Math.floor(0 + (220 - 0) * progress);
-      const green = Math.floor(123 * (1 - progress));
-      const blue = Math.floor(255 * (1 - progress));
-
-      const newColor = `rgb(${red}, ${green}, ${blue})`;
-      console.log(
-        `색상 변경: ${newColor}, 진행도: ${Math.round(progress * 100)}%`
-      );
-
-      // 상태 업데이트
-      setButtonColor(newColor);
-
-      // 버튼 요소에 직접 스타일 적용
-      if (buttonRef.current) {
-        buttonRef.current.style.backgroundColor = newColor;
-      }
-
-      // 관리자인 경우 색상 상태 업데이트
-      if (isAdmin && sessionId) {
-        updateGameState({
-          buttonColor: newColor,
-        });
-      }
-
-      // 4초 후 자동 폭발
-      if (elapsedTime >= 4000) {
-        // 나머지 코드 동일...
-      }
-
-      // 다음 업데이트 예약
-      timerRef.current = window.setTimeout(updateTimer, 50);
-    };
-
-    // 첫 번째 업데이트 시작
-    updateTimer();
-  };
-
-  // 버튼 클릭 처리 함수
-  const handleButtonClick = () => {
-    // 테스트: 버튼 색상을 즉시 빨간색으로 변경
-    setButtonColor("#dc3545");
-    console.log("버튼 색상 수동 변경: #dc3545");
-    // 이미 게임이 비활성화되었거나 세션이 없는 경우 무시
-    if (!isGameActive || !sessionId || !playerId) return;
-
-    console.log("Freshhh 버튼 클릭됨!");
-
-    // 이미 점수를 받았으면 무시
-    if (currentScore !== null) {
-      console.log("이미 점수가 있어 클릭 무시:", currentScore);
-      return;
-    }
-
-    // 타이머 정지
+    // 1. 기존 타이머 정리
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
 
-    // 로컬 상태 업데이트
+    // 중요: 결과 화면이면 타이머 시작하지 않음
+    if (gameMode === "result") {
+      console.log("결과 화면에서는 타이머를 시작하지 않습니다.");
+      return;
+    }
+
+    // 2. 초기 색상 설정 (파란색)
+    const initialColor = "#007bff";
+    const finalColor = "#dc3545";
+    setButtonColor(initialColor);
+
+    // 3. 버튼에 직접 스타일 적용 (개선된 방식)
+    if (buttonRef.current) {
+      // 트랜지션 제거
+      buttonRef.current.style.transition = "none";
+      buttonRef.current.style.backgroundColor = initialColor;
+
+      // 강제 레이아웃 재계산 (중요!)
+      void buttonRef.current.offsetHeight;
+
+      // 인라인 스타일 직접 적용으로 트랜지션 보장
+      buttonRef.current.style.cssText = `
+        background-color: ${initialColor} !important;
+        transition: background-color 4s linear !important;
+        will-change: background-color;
+      `;
+
+      // requestAnimationFrame으로 다음 프레임에서 색상 변경
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (buttonRef.current) {
+            buttonRef.current.style.backgroundColor = finalColor;
+            console.log("색상 변화 시작 - 중첩 RAF 사용");
+          }
+        });
+      });
+    }
+
+    // 4초 후 폭발 함수 호출
+    console.log("4초 타이머 설정");
+    timerRef.current = window.setTimeout(() => {
+      console.log("타이머 종료 - 폭발!");
+      if ((gameMode as GameMode) === "result") {
+        console.log("결과 화면에서는 타이머를 시작하지 않습니다.");
+        return;
+      }
+
+      // 최종 색상 설정 및 상태 업데이트
+      setButtonColor(finalColor);
+      setIsGameActive(false);
+
+      if (buttonRef.current) {
+        buttonRef.current.style.transition = "none";
+        buttonRef.current.style.backgroundColor = finalColor;
+      }
+
+      // Firebase 상태 업데이트 (방장인 경우)
+      if (isAdmin && sessionId) {
+        console.log("방장: 폭발 상태 업데이트");
+        const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+        update(gameStateRef, {
+          isGameActive: false,
+          buttonColor: finalColor,
+          lastUpdateTime: Date.now(),
+        });
+      }
+
+      // 점수 추가 (폭발로 인한 -5점)
+      if (currentScore === null && isGameActive) {
+        // isGameActive 체크 추가
+        console.log("폭발로 인한 -5점 추가");
+        addScore(-5);
+      }
+    }, 4000);
+
+    console.log("타이머 함수 종료");
+  };
+  // 버튼 클릭 처리 함수
+  // 방장만 게임 상태를 변경할 수 있게 수정
+  const handleButtonClick = () => {
+    const clickTime = new Date().toISOString();
+    console.log(`[${clickTime}] 버튼 클릭됨!`);
+
+    // 이미 게임이 비활성화되었거나 세션이 없는 경우 무시
+    if (!isGameActive || !sessionId || !playerId) {
+      console.log("클릭 무시: 게임이 활성화되지 않았거나 세션이 없음");
+      return;
+    }
+
+      // 즉시 버튼 비활성화 (중요!)
+  setIsGameActive(false);
+
+    // 이미 점수를 받았으면 무시 - 이 부분은 이미 있으나 강화
+    if (currentScore !== null) {
+      console.log("이미 점수가 있어 클릭 무시:", currentScore);
+      return;
+    }
+
+    // 즉시 버튼 비활성화 (중요!)
+  setIsGameActive(false);
+
+  // 현재 색상 유지 (애니메이션 중단)
+  if (buttonRef.current) {
+    // 현재 표시되는 색상 가져오기
+    const currentColor = window.getComputedStyle(buttonRef.current).backgroundColor;
+    
+    // 트랜지션 효과 제거하여 애니메이션 중단
+    buttonRef.current.style.transition = "none";
+    // 현재 색상 유지
+    buttonRef.current.style.backgroundColor = currentColor;
+  }
+
+    // 타이머 정리
+    clearAllTimers();
+
+    // 1. 모든 타이머와 애니메이션 즉시 정리
+    if (timerRef.current) {
+      console.log("타이머 정리");
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (animationFrameIdRef.current) {
+      console.log("애니메이션 프레임 정리");
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+
+    // 2. 로컬 상태 즉시 업데이트
     setIsGameActive(false);
 
-    // 먼저 내 로컬 clickOrder 증가
+    // 3. 클릭 순서 증가 및 로컬 상태 업데이트
     const newClickOrder = clickOrder + 1;
     setClickOrder(newClickOrder);
 
-    // DB 업데이트는 별도로 진행
-    updateGameState({
-      clickOrder: newClickOrder,
-      isGameActive: false, // 한 명이 클릭하면 게임 종료
-    });
+    // 3. 클릭 정보를 Firebase에 저장 (방장/참가자 모두)
+    console.log(`Firebase 상태 업데이트: 클릭한 플레이어 ${playerId}`);
 
-    // 참가자 수에 따라 점수 계산 로직 수정
+    const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+
+    // 방장인 경우 전체 게임 상태 변경
+    if (isAdmin) {
+      // 클릭 순서 업데이트
+      const newClickOrder = clickOrder + 1;
+      setClickOrder(newClickOrder);
+
+      update(gameStateRef, {
+        clickOrder: newClickOrder,
+        // isGameActive: false를 제거하고 게임 계속 진행
+        isGameActive: false, // 이 줄 추가: 방장도 게임 비활성화
+        clickTime: serverTimestamp(),
+        lastUpdateTime: Date.now(),
+        buttonColor: buttonColor, // 현재 색상 유지
+        lastClickedPlayerId: playerId, // 누가 클릭했는지 저장
+      });
+    }
+    // 참가자인 경우 클릭 정보 및 클릭 순서 업데이트
+    else {
+      // 트랜잭션을 사용하여 clickOrder를 원자적으로 증가
+      runTransaction(gameStateRef, (currentData) => {
+        if (currentData) {
+          // 클릭한 플레이어 목록 업데이트 (없으면 새로 생성)
+      const clickedPlayers = currentData.clickedPlayers || {};
+      clickedPlayers[playerId] = true;
+          return {
+            ...currentData,
+            clickOrder: (currentData.clickOrder || 0) + 1,
+            lastClickedPlayerId: playerId,
+            lastUpdateTime: Date.now(),
+            isGameActive: false // 클릭한 참가자는 더 이상 클릭할 수 없도록 함
+          };
+        }
+        return currentData;
+      });
+    }
+
+    // 5. 점수 계산 (방장/참가자 모두 점수 계산 로직 실행)
     let points: number;
     const totalPlayers = players.length;
-
-    // 점수 계산 로직 디버깅
     console.log(
       "점수 계산 시작, 클릭 순서:",
-      newClickOrder,
+      clickOrder + 1,
       "총 인원:",
       totalPlayers
     );
 
-    // 테스트 중이라면 플레이어가 1명일 수 있음
+    // 점수 계산 로직
     if (totalPlayers <= 1) {
-      points = 2; // 혼자일 때는 항상 +2점
+      // 혼자 테스트 중인 경우
+      points = 2;
       console.log("혼자 테스트 중이므로 +2점 부여");
     } else if (totalPlayers === 2) {
-      points = newClickOrder === 1 ? -2 : 2; // 첫번째 클릭: -2, 두번째 클릭: +2
+      // 2인 플레이
+      points = newClickOrder === 1 ? -2 : 2; // 첫번째: -2, 두번째: +2
       console.log("2인 플레이, 순서:", newClickOrder, "점수:", points);
     } else if (totalPlayers % 2 === 1) {
-      // 홀수 인원 - 중간값을 기준으로 계산
+      // 홀수 인원
       const middleIndex = Math.floor(totalPlayers / 2);
-
       console.log(
         "홀수 인원, 중간 인덱스:",
         middleIndex,
-        "현재 클릭 순서:",
+        "클릭 순서:",
         newClickOrder - 1
       );
 
@@ -696,11 +940,10 @@ export default function App(): JSX.Element {
     } else {
       // 짝수 인원
       const middleIndex = totalPlayers / 2 - 1;
-
       console.log(
         "짝수 인원, 중간 인덱스:",
         middleIndex,
-        "현재 클릭 순서:",
+        "클릭 순서:",
         newClickOrder - 1
       );
 
@@ -715,54 +958,129 @@ export default function App(): JSX.Element {
       `최종 점수 계산: ${points} (클릭 순서: ${newClickOrder}, 총 인원: ${totalPlayers})`
     );
 
-    // 점수 추가
-    addScore(points);
+    // 6. 점수 추가 - 직접 로컬 상태 업데이트 (너무 빠른 업데이트 방지)
+    setTimeout(() => {
+      if (currentScore === null) {
+        addScore(points);
+      }
+    }, 100);
   };
 
-  // 다음 라운드로 진행 함수
-  const nextRound = () => {
+  // 다음 라운드로 진행 함수 수정
+  const nextRound = async () => {
     if (!sessionId || !isAdmin) {
       console.error("다음 라운드 진행 실패: 권한 없음");
       return;
     }
 
-    const nextRoundNumber = currentRound < 3 ? currentRound + 1 : 1;
-    console.log(`다음 라운드 진행: ${currentRound} -> ${nextRoundNumber}`); // 디버깅 로그
+    console.log(`현재 라운드: ${currentRound}, 다음 이동 결정`);
 
-    if (currentRound < 3) {
+    // 현재 라운드 점수 확인
+    const hasCurrentRoundScore = scores.some((s) => s.round === currentRound);
+
+    // 3라운드가 끝났는지 확인
+    if (currentRound >= 3) {
+      // 3라운드 점수가 없으면 폭발 처리
+      if (!hasCurrentRoundScore) {
+        console.log(
+          `경고: 라운드 ${currentRound}에 점수가 없습니다. 폭발 점수 추가 중...`
+        );
+        addScore(-5); // 점수가 없으면 폭발로 처리
+
+        // 점수 처리를 위한 지연 후 결과 화면으로 전환
+        setTimeout(() => {
+          proceedToResultScreen();
+        }, 500);
+      } else {
+        // 정상적으로 결과 화면으로 전환
+        proceedToResultScreen();
+      }
+      return;
+    }
+
+    // 현재 라운드 점수가 없으면 폭발 처리
+    if (!hasCurrentRoundScore) {
+      console.log(
+        `경고: 라운드 ${currentRound}에 점수가 없습니다. 폭발 점수 추가 중...`
+      );
+      addScore(-5); // 점수가 없으면 폭발로 처리
+
+      // 점수 추가를 위한 약간의 지연
+      setTimeout(() => {
+        proceedToNextRound();
+      }, 300);
+    } else {
+      // 정상적으로 다음 라운드 진행
+      proceedToNextRound();
+    }
+
+    // 결과 화면으로 전환하는 내부 함수
+    function proceedToResultScreen() {
+      console.log("3라운드 완료, 결과 화면으로 전환 - 시작");
+
+      // 중요: 모든 타이머 정리 추가
+      clearAllTimers();
+
+      // 추가: 타이머 확실하게 정리
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+
+      // 1. 즉시 로컬 상태 변경
+      setGameMode("result");
+      console.log("로컬 게임모드 변경: 'result'");
+
+      // 2. 간단한 방식으로 Firebase 상태 업데이트
+      const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+      update(gameStateRef, {
+        mode: "result",
+        round: 1,
+        isGameActive: false,
+        lastUpdateTime: Date.now(),
+      })
+        .then(() => {
+          console.log("Firebase 상태 업데이트 성공: 'result' 모드");
+        })
+        .catch((error) => {
+          console.error("Firebase 상태 업데이트 실패:", error);
+        });
+    }
+
+    // 다음 라운드로 진행하는 내부 함수
+    function proceedToNextRound() {
       // 다음 라운드로 진행
-      console.log("다음 라운드로 진행");
+      const nextRoundNumber = currentRound + 1;
+      console.log(`다음 라운드로 진행: ${currentRound} -> ${nextRoundNumber}`);
 
-      // 상태 업데이트 - Firebase
-      updateGameState({
+      // 로컬 상태 업데이트
+      setCurrentRound(nextRoundNumber);
+      setButtonColor("#007bff");
+      setIsGameActive(true);
+      setCurrentScore(null);
+      setClickOrder(0);
+
+      // Firebase 상태 업데이트
+      const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+      set(gameStateRef, {
+        mode: "timing",
         round: nextRoundNumber,
         isGameActive: true,
         buttonColor: "#007bff",
         clickOrder: 0,
-      });
-
-      // 로컬 상태 업데이트
-      setCurrentRound(nextRoundNumber);
-      setIsGameActive(true);
-      setCurrentScore(null);
-      setButtonColor("#007bff");
-      setClickOrder(0);
-
-      // 타이머 시작
-      console.log("타이머 시작 호출");
-      // 약간의 지연 후 타이머 시작 (상태 업데이트 완료 후)
-      setTimeout(() => {
-        startTimingGameTimer();
-      }, 200);
-    } else {
-      // 게임 종료, 결과 화면으로
-      console.log("모든 라운드 완료, 결과 화면으로 이동");
-      updateGameState({
-        mode: "result",
-        round: 1,
-      });
-
-      setGameMode("result");
+        lastUpdateTime: Date.now(),
+        timingScores: gameState?.timingScores || {}, // 기존 점수 보존
+      })
+        .then(() => {
+          console.log(`Firebase 상태 업데이트 성공: 라운드 ${nextRoundNumber}`);
+          // 타이머 시작
+          setTimeout(() => {
+            startTimingGameTimerForced();
+          }, 300);
+        })
+        .catch((error) => {
+          console.error("Firebase 상태 업데이트 실패:", error);
+        });
     }
   };
 
@@ -894,10 +1212,26 @@ export default function App(): JSX.Element {
   };
 
   // 새 게임 시작 함수
+  // 새 게임 시작 함수 수정
   const startNewGame = () => {
-    if (!sessionId || !isAdmin) return;
+    if (!sessionId || !isAdmin) {
+      console.error("새 게임 시작 실패: 권한 없음");
+      return;
+    }
 
-    updateGameState({
+    console.log("새 게임 시작");
+
+    // 로컬 상태 즉시 초기화
+    setCurrentRound(1);
+    setScores([]);
+    setCurrentScore(null);
+    setGameMode("lobby");
+    setButtonColor("#007bff");
+    setClickOrder(0);
+
+    // Firebase 상태 직접 업데이트
+    const gameStateRef = ref(database, `sessions/${sessionId}/gameState`);
+    update(gameStateRef, {
       mode: "lobby",
       round: 1,
       isGameActive: false,
@@ -906,13 +1240,14 @@ export default function App(): JSX.Element {
       activeLightPlayerId: null,
       selectedPlayerId: null,
       timingScores: {},
-    });
-
-    // 로컬 상태 초기화
-    setCurrentRound(1);
-    setScores([]);
-    setCurrentScore(null);
-    setGameMode("lobby");
+      lastUpdateTime: Date.now(),
+    })
+      .then(() => {
+        console.log("새 게임 상태 저장 성공");
+      })
+      .catch((error) => {
+        console.error("새 게임 상태 저장 실패:", error);
+      });
   };
 
   // 세션 나가기
@@ -987,7 +1322,39 @@ export default function App(): JSX.Element {
     setPlayerRankings(rankings);
   };
 
-  // 눈치 게임 화면에 시작 버튼 추가
+  useEffect(() => {
+    // 버튼 요소에 현재 색상 상태 적용
+    if (buttonRef.current && buttonColor) {
+      buttonRef.current.style.backgroundColor = buttonColor;
+
+      // 버튼 그림자 색상 동적 업데이트 (CSS 변수 사용)
+      const rgbMatch = buttonColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        buttonRef.current.style.setProperty("--r", rgbMatch[1]);
+        buttonRef.current.style.setProperty("--g", rgbMatch[2]);
+        buttonRef.current.style.setProperty("--b", rgbMatch[3]);
+      }
+    }
+  }, [buttonColor]);
+
+  useEffect(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const handleTransitionEnd = () => {
+      // 트랜지션이 끝난 후 만약 색상이 최종 상태(빨간색)라면
+      if (button.style.backgroundColor === "rgb(220, 53, 69)") {
+        // 트랜지션 효과 제거하여 깜빡임 방지
+        button.style.transition = "none";
+      }
+    };
+
+    button.addEventListener("transitionend", handleTransitionEnd);
+
+    return () => {
+      button.removeEventListener("transitionend", handleTransitionEnd);
+    };
+  }, []);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -1001,6 +1368,12 @@ export default function App(): JSX.Element {
         clearTimeout(lightTimerRef.current);
         lightTimerRef.current = null;
       }
+      // 버튼 클릭 시 모든 애니메이션과 타이머를 즉시 정리
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+      clearAllTimers(); // 함수 호출
     };
   }, []);
   const calculateTotalScore = (): number => {
@@ -1012,6 +1385,25 @@ export default function App(): JSX.Element {
     // 모든 라운드 점수 합산
     return scores.reduce((total, score) => total + score.points, 0);
   };
+
+  // 새로운 함수 추가: 모든 플레이어가 클릭했는지 확인
+const checkAllPlayersClicked = (timingScores: { [playerId: string]: PlayerScore[] }) => {
+  // 현재 라운드에 모든 플레이어가 점수를 가지고 있는지 확인
+  const allPlayersClicked = players.every(player => {
+    const playerScores = timingScores[player.id] || [];
+    return playerScores.some(score => score.round === currentRound);
+  });
+
+  // 모든 플레이어가 클릭했으면 자동으로 다음 라운드 진행
+  if (allPlayersClicked) {
+    console.log("모든 플레이어가 클릭 완료, 자동으로 다음 라운드 진행");
+    setTimeout(() => {
+      if (isAdmin) {
+        nextRound();
+      }
+    }, 2000); // 2초 후 다음 라운드 진행
+  }
+};
   return (
     <div className="App">
       {/* 홈 화면 */}
@@ -1156,6 +1548,7 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
+
       {/* 눈치 게임 화면 */}
       {gameMode === "timing" && (
         <div className="game-screen">
@@ -1179,9 +1572,20 @@ export default function App(): JSX.Element {
           <div className="button-container">
             {!isGameActive ? (
               isAdmin ? (
-                // 게임이 비활성화 상태이고, 방장인 경우
-                players.length > 0 && clickOrder >= players.length ? (
-                  // 모든 플레이어가 클릭했을 때 Next 버튼 표시
+                // 첫 라운드에서 시작하지 않았고, 점수가 없는 경우만 Start 버튼 표시
+                currentRound === 1 &&
+                clickOrder === 0 &&
+                currentScore === null ? (
+                  // 첫 라운드 시작 - Start 버튼
+                  <button
+                    className="game-button"
+                    onClick={startGame}
+                    style={{ backgroundColor: "#28a745" }}
+                  >
+                    <span className="tap-text">Start</span>
+                  </button>
+                ) : (
+                  // 그 외 모든 경우에는 Next 버튼 표시
                   <button
                     className="game-button next-round-button"
                     onClick={nextRound}
@@ -1191,33 +1595,25 @@ export default function App(): JSX.Element {
                       {currentRound < 3 ? "Next" : "Result"}
                     </span>
                   </button>
-                ) : (
-                  // 시작 버튼
-                  <button
-                    ref={buttonRef}
-                    className="game-button"
-                    style={{ backgroundColor: buttonColor }}
-                    onClick={handleButtonClick}
-                    disabled={!isGameActive}
-                  >
-                    <span className="tap-text">Freshhh</span>
-                  </button>
                 )
               ) : (
-                // 게임이 비활성화 상태이고, 방장이 아닌 경우
+                // 방장이 아닌 경우 기존 코드 유지
                 <button
                   className="game-button"
                   disabled={true}
                   style={{ backgroundColor: "#1c1c1e", opacity: 0.7 }}
                 >
                   <span className="tap-text" style={{ fontSize: "18px" }}>
-                    대기 중...
+                    {currentScore !== null
+                      ? "다음 라운드 대기 중..."
+                      : "대기 중..."}
                   </span>
                 </button>
               )
             ) : (
-              // 게임이 활성화 상태인 경우, Freshhh 버튼
+              // 게임 활성화 상태일 때는 기존 코드 유지
               <button
+                ref={buttonRef}
                 className="game-button"
                 style={{ backgroundColor: buttonColor }}
                 onClick={handleButtonClick}
@@ -1285,7 +1681,6 @@ export default function App(): JSX.Element {
           </button>
         </div>
       )}
-
       {/* 결과 화면 */}
       {gameMode === "result" && (
         <div className="result-screen">
